@@ -16,6 +16,8 @@ develop-eggs
 # Installer logs
 pip-log.txt
 
+#Pickle object storage
+*.pickle
 # Unit test / coverage reports
 .coverage
 .tox
