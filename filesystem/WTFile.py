@@ -9,7 +9,7 @@ Wolpertinger Filehashing lib
 __author__ = 'Konstantin Renner (rennerkonsti@gmail.com)'
 __copyright__ = 'Copyright (c) 2012 Konstantin Renner'
 __license__ = 'GPLv2'
-__version__ = '1.2.3' #Versioning: http://www.python.org/dev/peps/pep-0386/
+__version__ = '0.0.1' #Versioning: http://www.python.org/dev/peps/pep-0386/
 
 
 
@@ -96,12 +96,12 @@ def load():
 	logging.info('Loaded ' + str(len(cache)) + ' Hashes')
     	
 """
-	Tests the hashing function against the /usr directory
+	Tests the hashing function against the /usr/src directory
 """
 		
 def test():
 	logging.basicConfig(level=logging.DEBUG)
-	hashes = getDirHashes('/home/konsti/Videos')
+	hashes = getDirHashes('/usr/src')
 	save()
 	pass
 	
