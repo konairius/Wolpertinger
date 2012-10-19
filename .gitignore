@@ -13,6 +13,9 @@ sdist
 develop-eggs
 .installed.cfg
 
+# Editor Backup
+*~
+
 # Installer logs
 pip-log.txt
 

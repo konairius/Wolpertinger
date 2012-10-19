@@ -19,6 +19,8 @@ import logging
 import pickle
 import WTSync
 
+logger = logging.getLogger(__name__)
+
 """
 	Contains all relevnat File data
 """
@@ -56,14 +58,14 @@ def getFile(path):
 	global cache
 	try:
 		if(os.path.getmtime(path) == cache[path].getMTime()):
-			logging.debug('Cache hit for ' + path)
+			logger.debug('Cache hit for ' + path)
 			return cache[path]
 		else:
-			logging.debug('Cached Hash for ' + path + ' is obsolete')
+			logger.debug('Cached Hash for ' + path + ' is obsolete')
 			del cache[path]
 			return getFile(path)
 	except KeyError:
-		logging.debug('Creating new Hash for ' + path)
+		logger.debug('Creating new Hash for ' + path)
 		cache[path] = WTFile(path)
 		save()#Probably not the best way...
 		return getFile(path)
@@ -75,7 +77,7 @@ def getDir(path):
 	WTFiles = []
 	for root, dirs, files in os.walk(path):
 		for name in files:
-			logging.debug('Scanning file ' + os.path.join(root, name))
+			logger.debug('Scanning file ' + os.path.join(root, name))
 			WTFiles.append(getFile(os.path.join(root, name)))
 			
 	return WTFiles
@@ -84,7 +86,7 @@ def getDir(path):
 	Persistent Hashcash
 """
 def save():
-	logging.info('Saving ' + str(len(cache)) + ' Hashes')
+	logger.debug('Saving ' + str(len(cache)) + ' Hashes')
 	with open('hashcache.pickle', 'wb') as hashcache:
 		pickle.dump(cache, hashcache, pickle.HIGHEST_PROTOCOL)
 
@@ -92,11 +94,14 @@ def load():
 	global cache
 	try:
 		with open('hashcache.pickle', 'rb') as hashcache:
-			cache = pickle.load(hashcache)
+			try:
+				cache = pickle.load(hashcache)
+			except EOFError:
+				cache = dict()
 	except IOError:
 		cache = dict()
 		
-	logging.info('Loaded ' + str(len(cache)) + ' Hashes')
+	logger.info('Loaded ' + str(len(cache)) + ' Hashes')
     	
 """
 	Tests the hashing function against the /usr/src directory
