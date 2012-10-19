@@ -97,9 +97,7 @@ class SyncNode(object):
 		
 def test():
 	logging.basicConfig(level=logging.DEBUG)
-	node1 = SyncNode('/home/konsti/Music')
-	node2 = SyncNode('/home/konsti/tmp')
-	node1.sync(node2)
+
 	pass
 	
 if __name__=='__main__':
