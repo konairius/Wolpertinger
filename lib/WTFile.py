@@ -17,6 +17,7 @@ import os
 import hashlib
 import logging
 import pickle
+import WTSync
 
 """
 	Contains all relevnat File data
@@ -25,6 +26,7 @@ class WTFile(object):
 	
 	
 	def __init__(self, path):
+	
 		self.path = path
 		self.lastChange = os.path.getmtime(path)
 		self.createHash()
@@ -50,32 +52,33 @@ class WTFile(object):
 	Namespace Functions and Cache
 """	
 
-def getFileHash(path):
+def getFile(path):
 	global cache
 	try:
 		if(os.path.getmtime(path) == cache[path].getMTime()):
 			logging.debug('Cache hit for ' + path)
-			return cache[path].getHash()
+			return cache[path]
 		else:
 			logging.debug('Cached Hash for ' + path + ' is obsolete')
 			del cache[path]
-			return getFileHash(path)
+			return getFile(path)
 	except KeyError:
 		logging.debug('Creating new Hash for ' + path)
 		cache[path] = WTFile(path)
-		return getFileHash(path)
+		save()#Probably not the best way...
+		return getFile(path)
 	except NameError:
 		load()
-		return getFileHash(path)
+		return getFile(path)
 
-def getDirHashes(path):
-	hashes = []
+def getDir(path):
+	WTFiles = []
 	for root, dirs, files in os.walk(path):
 		for name in files:
 			logging.debug('Scanning file ' + os.path.join(root, name))
-			hashes.append(getFileHash(os.path.join(root, name)))
+			WTFiles.append(getFile(os.path.join(root, name)))
 			
-	return hashes
+	return WTFiles
 	
 """
 	Persistent Hashcash
@@ -101,7 +104,7 @@ def load():
 		
 def test():
 	logging.basicConfig(level=logging.DEBUG)
-	hashes = getDirHashes('/usr/src')
+	hashes = getDir('/home/konsti/Videos')
 	save()
 	pass
 	
