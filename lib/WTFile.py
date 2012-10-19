@@ -77,8 +77,9 @@ def getDir(path):
 	WTFiles = []
 	for root, dirs, files in os.walk(path):
 		for name in files:
-			logger.debug('Scanning file ' + os.path.join(root, name))
-			WTFiles.append(getFile(os.path.join(root, name)))
+			if(os.path.isfile((os.path.join(root, name)))):
+				logger.debug('Scanning file ' + os.path.join(root, name))
+				WTFiles.append(getFile(os.path.join(root, name)))
 			
 	return WTFiles
 	

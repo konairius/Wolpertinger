@@ -13,12 +13,16 @@ __version__ = '0.0.1' #Versioning: http://www.python.org/dev/peps/pep-0386/
 
 import unittest
 import logging
+import tarfile
+import pickle
 
 import WTFile
 import WTSync
+import WTConnection
+import WTTransport
 
 
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 class TestWTFile(unittest.TestCase):
 	
@@ -54,7 +58,63 @@ class TestWTSync(unittest.TestCase):
 		for key in list(toSync):
 			self.assertTrue(not key in conflicting)
 			self.assertTrue(not key in toMove)
+
+class TestWTConnection(unittest.TestCase):
+	
+	def setUp(self):
+		self.connection1 = WTConnection.Connection('localhost','localhost')
+		self.connection1.supportedTransports.append('RsyncViaSSH')
+		
+		self.connection2 = WTConnection.Connection('localhost','localhost')
+		self.connection2.supportedTransports.append('RsyncViaSSH')
+		
+	def test_connecting(self):
+		self.connection1.connect(self.connection2)
+		
+class TestWTTransport(unittest.TestCase):
+
+	def setUp(self):
+		self.local = WTConnection.Connection('localhost','fileserver')
+		self.local.supportedTransports.append('RsyncViaSSH')
+		
+		self.remote = WTConnection.Connection('fileserver','localhost')
+		self.remote.supportedTransports.append('RsyncViaSSH')
+		
+		self.local.connect(self.remote)
+		
+	def test_RsyncViaSSH(self):
+		transport = WTTransport.Transport('/home/konsti/Pokemon Emerald.sav', '/tmp/test2', self.local)
+		transport.start()
+		
+class TestWTAll(unittest.TestCase):
+	def setUp(self):
+		self.local = WTConnection.Connection('localhost','localhost')
+		self.local.supportedTransports.append('Tarball')
+		
+		self.remote = WTConnection.Connection('localhost','localhost')
+		self.remote.supportedTransports.append('Tarball')
+		
+		self.local.connect(self.remote)
+		
+		self.local.nodes.append(WTSync.SyncNode('/home/konsti/Music'))
+		self.remote.nodes.append(WTSync.SyncNode('/tmp'))
+		
+	def test_sync(self):
+		toSync, conflicting, toMove = self.local.nodes[0].sync(self.local.remote.nodes[0])
+		for key in list(toSync):
+			self.assertTrue(not key in conflicting)
+			self.assertTrue(not key in toMove)
+			#logger
+			transport = WTTransport.Transport(toSync[key].path, key, self.local)
+			transport.start()
+			pickle
+			with tarfile.open('transport.tar','a') as tar:
+				tar.add(self.sourcePath)
+		
 		
 	
 if __name__ == '__main__':
-	unittest.main()
+#	unittest.main()
+
+	suite = unittest.TestLoader().loadTestsFromTestCase(TestWTAll)
+	unittest.TextTestRunner(verbosity=2).run(suite)
