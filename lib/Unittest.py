@@ -19,7 +19,7 @@ import pickle
 import WTFile
 import WTSync
 import WTConnection
-import WTTransport
+#import WTTransport
 
 
 logging.basicConfig(level=logging.INFO)
@@ -61,16 +61,17 @@ class TestWTSync(unittest.TestCase):
 
 class TestWTConnection(unittest.TestCase):
 	
-	def setUp(self):
-		self.connection1 = WTConnection.Connection('localhost','localhost')
-		self.connection1.supportedTransports.append('RsyncViaSSH')
+	#def setUp(self):
 		
-		self.connection2 = WTConnection.Connection('localhost','localhost')
-		self.connection2.supportedTransports.append('RsyncViaSSH')
 		
-	def test_connecting(self):
-		self.connection1.connect(self.connection2)
-		
+	def test_createNodesLocal(self):
+		con = WTConnection.Connection('localhost','localhost')
+		con.addSync('/home/konsti/tmp/SyncTestSource'
+				   ,'/home/konsti/tmp/SyncTestTarget')
+		self.assertTrue(con.nodes[0][0].path == '/home/konsti/tmp/SyncTestSource')
+		self.assertTrue(con.nodes[0][1].path == '/home/konsti/tmp/SyncTestTarget')
+		con.startTransfer()
+'''		
 class TestWTTransport(unittest.TestCase):
 
 	def setUp(self):
@@ -85,7 +86,8 @@ class TestWTTransport(unittest.TestCase):
 	def test_RsyncViaSSH(self):
 		transport = WTTransport.Transport('/home/konsti/Pokemon Emerald.sav', '/tmp/test2', self.local)
 		transport.start()
-		
+'''
+'''		
 class TestWTAll(unittest.TestCase):
 	def setUp(self):
 		self.local = WTConnection.Connection('localhost','localhost')
@@ -110,11 +112,11 @@ class TestWTAll(unittest.TestCase):
 			pickle
 			with tarfile.open('transport.tar','a') as tar:
 				tar.add(self.sourcePath)
-		
+'''		
 		
 	
 if __name__ == '__main__':
-#	unittest.main()
+	unittest.main()
 
-	suite = unittest.TestLoader().loadTestsFromTestCase(TestWTAll)
-	unittest.TextTestRunner(verbosity=2).run(suite)
+	#suite = unittest.TestLoader().loadTestsFromTestCase(TestWTAll)
+	#unittest.TextTestRunner(verbosity=2).run(suite)

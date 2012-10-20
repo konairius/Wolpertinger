@@ -30,7 +30,8 @@ class SyncNode(object):
 		for f in fileList:
 			#logger.debug('Adding file ' + os.path.relpath(f.path,path))
 			self.hashDict[f.hash] = f
-		
+	
+	#TODO: Rewrite	
 	def pathSync(self, patner):
 		if(not type(patner) == type(self)):
 			raise TypeError('patner must be of Type' + type(self))
@@ -40,17 +41,20 @@ class SyncNode(object):
 		for key in list(self.pathDict):
 			try:
 				if(not patner.pathDict[key].path == self.pathDict[key].hash):
-					logger.info('Conflicting File found at ' + patner.pathDict[key].path)
+					logger.info('Conflicting File found at ' 
+					+ patner.pathDict[key].path)
 					conflictingFiles[patner.pathDict[key].path] = self.pathDict[key]
 					
 			except KeyError:
-				logger.info('By Path: Copy file from ' + self.pathDict[key].path + ' to '
-				 + os.path.join(patner.path, key))
+				logger.info('By Path: Copy file from ' 
+				+ self.pathDict[key].path 
+				+ ' to '
+				+ os.path.join(patner.path, key))
 				copyFiles[os.path.join(patner.path, key)] = self.pathDict[key]
 				
 		return copyFiles, conflictingFiles
 				 
-	
+	#TODO: Rewrite
 	def hashSync(self, patner):	
 		if(not type(patner) == type(self)):
 			raise TypeError('patner must be of Type' + type(self))
@@ -60,20 +64,29 @@ class SyncNode(object):
 		for key in list(self.hashDict):
 			try:
 				if(not os.path.relpath(patner.hashDict[key].path, patner.path) 
-									   == os.path.relpath(self.hashDict[key].path, self.path)):
-					logger.info('File found at ' + 
-					os.path.relpath(patner.hashDict[key].path, patner.path) + 
-					' expected ' + os.path.relpath(self.hashDict[key].path, self.path))
-					moveFiles[os.path.join(patner.path,
-							  os.path.relpath(self.hashDict[key].path, self.path))] = self.hashDict[key]
+				== os.path.relpath(self.hashDict[key].path, self.path)):
+					logger.info('File found at ' 
+					+ os.path.relpath(patner.hashDict[key].path, patner.path) 
+					+ ' expected ' 
+					+ os.path.relpath(self.hashDict[key].path, self.path))
+					moveFiles[os.path.join(patner.path
+											, os.path.relpath(
+											self.hashDict[key].path
+											, self.path))] = self.hashDict[key]
 			except KeyError:
-				logger.info('By Hash: Copy file from ' + self.hashDict[key].path + ' to '
-				 + os.path.join(patner.path, os.path.relpath(self.hashDict[key].path, self.path)))
-				copyFiles[os.path.join(patner.path,
-						  os.path.relpath(self.hashDict[key].path, self.path))] = self.hashDict[key]
+				logger.info('By Hash: Copy file from ' 
+				+ self.hashDict[key].path + ' to ' 
+				+ os.path.join(patner.path
+								, os.path.relpath(
+								self.hashDict[key].path, self.path)))
+				copyFiles[os.path.join(patner.path
+										, os.path.relpath(
+										self.hashDict[key].path
+										, self.path))] = self.hashDict[key]
 						  
 		return copyFiles, moveFiles
 	
+	#TODO: Rewrite
 	def sync(self, patner):
 		pathCopy, conflictingFiles = self.pathSync(patner)
 		hashCopy, moveFiles = self.hashSync(patner)
@@ -81,7 +94,7 @@ class SyncNode(object):
 		for key in list(pathCopy):
 			try:
 				if(hashCopy[key] == pathCopy[key]):
-					copyFiles[key] = hashCopy[key]
+					copyFiles[key] = pathCopy[key]
 				else:
 					raise RuntimeError('Files that are the same are not, '+
 					'check your system for memory Corruption')
@@ -89,7 +102,12 @@ class SyncNode(object):
 				pass	
 		return pathCopy, conflictingFiles, moveFiles
 		
-
+	def getTransferFiles(self, patner):
+		copyFiles, conflictingFiles, moveFiles = self.sync(patner)
+		files = []
+		for key in list(copyFiles):
+			files.append((copyFiles[key].path, key))
+		return files
 	
 """
 	Tests the sync function
