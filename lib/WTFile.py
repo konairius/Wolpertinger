@@ -17,9 +17,34 @@ import os
 import hashlib
 import logging
 import pickle
+import Queue
+
+
+import time
+
 import WTSync
+import WTJobs
+
+
+
 
 logger = logging.getLogger(__name__)
+
+hashJobs = Queue.Queue()
+
+class HashJob(object):
+	
+	def __init__(self, path):
+		global hashJobs
+		logger.debug('Creating hashing Job for ' + path)
+		hashJobs.put(path)
+		
+	def start(self):
+		path = hashJobs.get()
+		logger.debug('Staring hashing Job for ' + path)
+		cache[path] = (WTFile(path))
+		logger.debug('Finished hashing Job for ' + path)
+		hashJobs.task_done()
 
 """
 	Contains all relevnat File data
@@ -30,14 +55,14 @@ class WTFile(object):
 	def __init__(self, path):
 	
 		self.path = path
-		self.lastChange = os.path.getmtime(path)
+		self.mtime = os.path.getmtime(path)
 		self.createHash()
 		
 	def getHash(self):
 		return self.hash
 		
 	def getMTime(self):
-		return self.lastChange
+		return self.mtime
 	
 	def createHash(self):
 		md5 = hashlib.md5()
@@ -58,36 +83,38 @@ def getFile(path):
 	global cache
 	try:
 		if(os.path.getmtime(path) == cache[path].getMTime()):
-			logger.debug('Cache hit for ' + path)
+			#logger.debug('Cache hit for ' + path)
 			return cache[path]
 		else:
-			logger.debug('Cached Hash for ' + path + ' is obsolete')
+			#logger.debug('Cached Hash for ' + path + ' is obsolete')
 			del cache[path]
 			return getFile(path)
 	except KeyError:
-		logger.debug('Creating new Hash for ' + path)
-		cache[path] = WTFile(path)
-		save()#Probably not the best way...
+		#logger.debug('Creating new Hash for ' + path)
+		WTJobs.queue.put(HashJob(path))
+		#Probably not the best way...
+		hashJobs.join()
 		return getFile(path)
 	except NameError:
 		load()
 		return getFile(path)
 
 def getDir(path):
-	WTFiles = []
 	for root, dirs, files in os.walk(path):
+		WTFiles = []
 		for name in files:
-			if(os.path.isfile((os.path.join(root, name)))):
-				logger.debug('Scanning file ' + os.path.join(root, name))
-				WTFiles.append(getFile(os.path.join(root, name)))
-			
+			if(os.path.isfile(os.path.join(root, name))):
+				currentFile = getFile(os.path.join(root, name))
+				
+				WTFiles.append(currentFile)
+	save()		
 	return WTFiles
 	
 """
 	Persistent Hashcash
 """
 def save():
-	logger.debug('Saving ' + str(len(cache)) + ' Hashes')
+	logger.info('Saving ' + str(len(cache)) + ' Hashes')
 	with open('hashcache.pickle', 'wb') as hashcache:
 		pickle.dump(cache, hashcache, pickle.HIGHEST_PROTOCOL)
 
@@ -103,16 +130,3 @@ def load():
 		cache = dict()
 		
 	logger.info('Loaded ' + str(len(cache)) + ' Hashes')
-    	
-"""
-	Tests the hashing function against the /usr/src directory
-"""
-		
-def test():
-	logging.basicConfig(level=logging.DEBUG)
-	hashes = getDir('/home/konsti/Videos')
-	save()
-	pass
-	
-if __name__=='__main__':
-    test()

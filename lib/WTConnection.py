@@ -11,19 +11,13 @@ __copyright__ = 'Copyright (c) 2012 Konstantin Renner'
 __license__ = 'GPLv2'
 __version__ = '0.0.2' #Versioning: http://www.python.org/dev/peps/pep-0386/
 
-import shutil
-
 import WTSync
+import WTTransport
 
 def getRemoteNode(remoteURI, remotePath, localURI):
 	if 'localhost' == remoteURI:
 		return WTSync.SyncNode(remotePath)
 	raise NotImplementedError('No valid Communication Protocol found')
-
-def getTransferMethod(remoteURI, localURI):
-	if 'localhost' == remoteURI:
-		return 'cp'
-	raise NotImplementedError('No valid Transfer Protocol found')
 
 class Connection(object):
 	
@@ -37,18 +31,16 @@ class Connection(object):
 		remoteNode = getRemoteNode(self.remoteURI,remotePath,self.localURI)
 		self.nodes.append((localNode,remoteNode))
 		
-	def startTransfer(self, nodesId = -1, twoway = False):
-		method = getTransferMethod(self.remoteURI, self.localURI)
+	def startSync(self, nodesId = -1, twoway = False):
 		copyFiles = []
+		nodes = []
 		if -1 == nodesId:
-			for link in self.nodes:
-		 		copyFiles.append(link[0].getTransferFiles(link[1]))
-		 		if twoway:
-		 			copyFiles.append(link[1].getTransferFiles(link[0]))
+			nodes = self.nodes
 		else:
-		 	copyFiles.append(self.nodes[nodesId][0].getTransferFiles(self.nodes[nodesId][1]))
-		 	if twoway:
-		 		copyFiles.append(self.nodes[nodesId][1].getTransferFiles(self.nodes[nodesId][0]))
-		if 'cp' == method:
-			for copyJob in copyFiles[0]:
-				shutil.copy(copyJob[0],copyJob[1])
+			nodes.append(nodes[nodesId])
+		for link in nodes:
+	 		copyFiles += (link[0].getTransferFiles(link[1]))
+	 		if twoway:
+	 			copyFiles += (link[1].getTransferFiles(link[0]))
+	 	for job in copyFiles:
+	 		WTTransport.addJob(self.localURI, job[0], self.remoteURI, job[1])

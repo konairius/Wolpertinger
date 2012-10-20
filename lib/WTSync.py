@@ -41,12 +41,12 @@ class SyncNode(object):
 		for key in list(self.pathDict):
 			try:
 				if(not patner.pathDict[key].hash == self.pathDict[key].hash):
-					logger.info('Conflicting File found at ' 
+					logger.debug('Conflicting File found at ' 
 					+ patner.pathDict[key].path)
 					conflictingFiles[patner.pathDict[key].path] = self.pathDict[key]
 					
 			except KeyError:
-				logger.info('By Path: Copy file from ' 
+				logger.debug('By Path: Copy file from ' 
 				+ self.pathDict[key].path 
 				+ ' to '
 				+ os.path.join(patner.path, key))
@@ -65,7 +65,7 @@ class SyncNode(object):
 			try:
 				if(not os.path.relpath(patner.hashDict[key].path, patner.path) 
 				== os.path.relpath(self.hashDict[key].path, self.path)):
-					logger.info('File found at ' 
+					logger.debug('File found at ' 
 					+ os.path.relpath(patner.hashDict[key].path, patner.path) 
 					+ ' expected ' 
 					+ os.path.relpath(self.hashDict[key].path, self.path))
@@ -74,7 +74,7 @@ class SyncNode(object):
 											self.hashDict[key].path
 											, self.path))] = self.hashDict[key]
 			except KeyError:
-				logger.info('By Hash: Copy file from ' 
+				logger.debug('By Hash: Copy file from ' 
 				+ self.hashDict[key].path + ' to ' 
 				+ os.path.join(patner.path
 								, os.path.relpath(

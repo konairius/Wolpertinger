@@ -15,11 +15,15 @@ import unittest
 import logging
 import tarfile
 import pickle
+import time
+import multiprocessing
+import threading
 
 import WTFile
 import WTSync
 import WTConnection
-#import WTTransport
+import WTTransport
+import WTJobs
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -65,12 +69,17 @@ class TestWTConnection(unittest.TestCase):
 		
 		
 	def test_createNodesLocal(self):
+	
+		WTJobs.startWorkers(4)
 		con = WTConnection.Connection('localhost','localhost')
 		con.addSync('/home/konsti/tmp/SyncTestSource'
 				   ,'/home/konsti/tmp/SyncTestTarget')
 		self.assertTrue(con.nodes[0][0].path == '/home/konsti/tmp/SyncTestSource')
 		self.assertTrue(con.nodes[0][1].path == '/home/konsti/tmp/SyncTestTarget')
-		con.startTransfer()
+		con.startSync()
+		WTJobs.queue.join()
+		
+		
 '''		
 class TestWTTransport(unittest.TestCase):
 
