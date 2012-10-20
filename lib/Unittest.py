@@ -22,7 +22,7 @@ import WTConnection
 #import WTTransport
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 class TestWTFile(unittest.TestCase):
 	
@@ -116,7 +116,7 @@ class TestWTAll(unittest.TestCase):
 		
 	
 if __name__ == '__main__':
-	unittest.main()
+	#unittest.main()
 
-	#suite = unittest.TestLoader().loadTestsFromTestCase(TestWTAll)
-	#unittest.TextTestRunner(verbosity=2).run(suite)
+	suite = unittest.TestLoader().loadTestsFromTestCase(TestWTConnection)
+	unittest.TextTestRunner(verbosity=2).run(suite)

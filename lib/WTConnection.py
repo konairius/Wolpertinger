@@ -51,4 +51,4 @@ class Connection(object):
 		 		copyFiles.append(self.nodes[nodesId][1].getTransferFiles(self.nodes[nodesId][0]))
 		if 'cp' == method:
 			for copyJob in copyFiles[0]:
-				shutil.copy2(copyJob[0],copyJob[1])
+				shutil.copy(copyJob[0],copyJob[1])

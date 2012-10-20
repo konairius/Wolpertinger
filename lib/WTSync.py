@@ -40,7 +40,7 @@ class SyncNode(object):
 		copyFiles = dict()
 		for key in list(self.pathDict):
 			try:
-				if(not patner.pathDict[key].path == self.pathDict[key].hash):
+				if(not patner.pathDict[key].hash == self.pathDict[key].hash):
 					logger.info('Conflicting File found at ' 
 					+ patner.pathDict[key].path)
 					conflictingFiles[patner.pathDict[key].path] = self.pathDict[key]
