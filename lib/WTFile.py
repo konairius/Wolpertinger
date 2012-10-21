@@ -36,14 +36,14 @@ class HashJob(object):
 	
 	def __init__(self, path):
 		global hashJobs
-		logger.debug('Creating hashing Job for ' + path)
+		##logger.debug('Creating hashing Job for ' + path)
 		hashJobs.put(path)
 		
 	def start(self):
 		path = hashJobs.get()
-		logger.debug('Staring hashing Job for ' + path)
+		##logger.debug('Staring hashing Job for ' + path)
 		cache[path] = (WTFile(path))
-		logger.debug('Finished hashing Job for ' + path)
+		##logger.debug('Finished hashing Job for ' + path)
 		hashJobs.task_done()
 
 """
@@ -83,7 +83,7 @@ def getFile(path):
 	global cache
 	try:
 		if(os.path.getmtime(path) == cache[path].getMTime()):
-			#logger.debug('Cache hit for ' + path)
+			logger.debug('Cache hit for ' + path)
 			return cache[path]
 		else:
 			#logger.debug('Cached Hash for ' + path + ' is obsolete')
@@ -93,7 +93,6 @@ def getFile(path):
 		#logger.debug('Creating new Hash for ' + path)
 		WTJobs.queue.put(HashJob(path))
 		#Probably not the best way...
-		hashJobs.join()
 		return getFile(path)
 	except NameError:
 		load()
@@ -105,9 +104,8 @@ def getDir(path):
 		for name in files:
 			if(os.path.isfile(os.path.join(root, name))):
 				currentFile = getFile(os.path.join(root, name))
-				
 				WTFiles.append(currentFile)
-	save()		
+	save()
 	return WTFiles
 	
 """

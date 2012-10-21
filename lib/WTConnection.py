@@ -34,13 +34,16 @@ class Connection(object):
 	def startSync(self, nodesId = -1, twoway = False):
 		copyFiles = []
 		nodes = []
+		print('startSync')
 		if -1 == nodesId:
 			nodes = self.nodes
 		else:
 			nodes.append(nodes[nodesId])
+		print(nodes)
 		for link in nodes:
 	 		copyFiles += (link[0].getTransferFiles(link[1]))
 	 		if twoway:
 	 			copyFiles += (link[1].getTransferFiles(link[0]))
 	 	for job in copyFiles:
+	 		print(job)
 	 		WTTransport.addJob(self.localURI, job[0], self.remoteURI, job[1])

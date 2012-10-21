@@ -24,11 +24,11 @@ class SyncNode(object):
 		fileList = WTFile.getDir(path)
 		self.pathDict = dict()
 		for f in fileList:
-			#logger.debug('Adding file ' + os.path.relpath(f.path,path))
+			logger.debug('Adding file ' + os.path.relpath(f.path,path))
 			self.pathDict[os.path.relpath(f.path,path)] = f
 		self.hashDict = dict()
 		for f in fileList:
-			#logger.debug('Adding file ' + os.path.relpath(f.path,path))
+			logger.debug('Adding file ' + os.path.relpath(f.path,path))
 			self.hashDict[f.hash] = f
 	
 	#TODO: Rewrite	
@@ -91,6 +91,8 @@ class SyncNode(object):
 		pathCopy, conflictingFiles = self.pathSync(patner)
 		hashCopy, moveFiles = self.hashSync(patner)
 		copyFiles = dict()
+		print(pathCopy)
+		print(hashCopy)
 		for key in list(pathCopy):
 			try:
 				if(hashCopy[key] == pathCopy[key]):
@@ -100,13 +102,14 @@ class SyncNode(object):
 					'check your system for memory Corruption')
 			except KeyError:
 				pass	
-		return pathCopy, conflictingFiles, moveFiles
+		return copyFiles, conflictingFiles, moveFiles
 		
 	def getTransferFiles(self, patner):
 		copyFiles, conflictingFiles, moveFiles = self.sync(patner)
 		files = []
 		for key in list(copyFiles):
 			files.append((copyFiles[key].path, key))
+		print(files)
 		return files
 	
 """
