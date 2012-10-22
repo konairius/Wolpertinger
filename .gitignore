@@ -21,6 +21,7 @@ pip-log.txt
 
 #Pickle object storage
 *.pickle
+*.sqlite
 # Unit test / coverage reports
 .coverage
 .tox
