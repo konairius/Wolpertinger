@@ -36,7 +36,7 @@ class Cache(object):
             createStatement += str(dataType) + ', '
         createStatement = createStatement[:-2]
         createStatement += ')'
-        logger.debug(createStatement)
+        #logger.debug(createStatement)
         cursor = database.cursor()
         cursor.execute(createStatement)
         database.commit()
@@ -53,7 +53,7 @@ class Cache(object):
             insertStatement += '"' + str(value) + '"' + ', '
         insertStatement = insertStatement[:-2]
         insertStatement += ')'
-        logger.debug(insertStatement)
+        #logger.debug(insertStatement)
         cursor = database.cursor()
         cursor.execute(insertStatement)
         database.commit()
@@ -69,7 +69,7 @@ class Cache(object):
             getStatement += '"' + getDict[key] + '"'
             getStatement += ' AND '
         getStatement = getStatement[:-5]
-        logger.debug(getStatement)
+        #logger.debug(getStatement)
         cursor = database.cursor()
         cursor.execute(getStatement)
         buildDict = dict()
@@ -94,6 +94,6 @@ class Cache(object):
             deleteStatement += '"' + str(serialized[i]) + '"'
             deleteStatement += ' AND '
         deleteStatement = deleteStatement[:-5]
-        logger.debug(deleteStatement)
+        #logger.debug(deleteStatement)
         cursor = database.cursor()
         cursor.execute(deleteStatement)

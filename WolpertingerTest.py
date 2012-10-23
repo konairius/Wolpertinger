@@ -14,12 +14,17 @@ __version__ = '0.0.1'
 import unittest
 import logging
 
-logging.basicConfig(filename='unittest.log', level=logging.DEBUG)
+FORMAT = "%(asctime)s | %(levelname)s | %(name)s: %(message)s"
 
+logging.basicConfig(format=FORMAT,
+                    filename='unittest.log',
+                    level=logging.DEBUG)
+from WTlib import WTJobs
 from WTlib import WTFile
 from WTlib import WTFolder
 from WTlib import WTTransport
 from WTlib import WTTransport_cp
+from WTlib import WTConnection
 
 
 class DefaultTest(unittest.TestCase):
@@ -50,10 +55,27 @@ class DefaultTest(unittest.TestCase):
         testFolder = WTFolder.Folder(path)
         self.assertTrue(testFolder.path == path, 'Creating failed')
 
-    def test_localCopy(self):
+    def test_localCopySingleFile(self):
         sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/tvshow.nfo'
         targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/tvshow.nfo'
         URI = 'localhost'
         transporter = WTTransport.tansportJob(URI, sourcePath,
                                               URI, targetPath)
         transporter.start()
+
+    def test_localCopySync(self):
+        sourcePath = '/home/konsti/tmp/SyncTestSource'
+        targetPath = '/home/konsti/tmp/SyncTestTarget'
+        URI = 'localhost'
+        connection = WTConnection.Connection(URI, URI)
+
+        testSourceFolder = WTFolder.Folder(sourcePath)
+        testTargetFolder = WTFolder.Folder(targetPath)
+        self.assertTrue(testSourceFolder.path == sourcePath, 'Creating failed')
+        self.assertTrue(testTargetFolder.path == targetPath, 'Creating failed')
+
+        testSourceFolder.sync(testTargetFolder, connection)
+
+        for job in WTTransport.queue:
+            job.start()
+        WTJobs.workerPool._work_queue.join()

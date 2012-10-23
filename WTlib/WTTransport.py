@@ -20,10 +20,14 @@ logger = logging.getLogger(__name__)
 
 transportProviders = dict()
 
+queue = []
+
 
 class tansportJob(object):
 
     def __init__(self, localURI, localPath, remoteURI, remotePath):
+        logger.debug('New Transport Job: ' + localURI + ':' + localPath +
+                     ' -> ' + remoteURI + ':' + remotePath)
         self.localURI = localURI
         self.localPath = localPath
         self.remoteURI = remoteURI

@@ -16,6 +16,7 @@ import hashlib
 import os
 
 from WTlib import WTCache
+from WTlib import WTTransport
 
 
 class NotAFileError(Exception):
@@ -58,6 +59,23 @@ class File(object):
             cache.remove(self)
             self.createFromDisk(path)
 
+    def sync(self, remote, connection, single=False):
+        if single:
+            WTTransport.queue.append(
+                        WTTransport.tansportJob(
+                                    connection.localURI,
+                                    self.path,
+                                    connection.remoteURI,
+                                    remote))
+        else:
+            if self.hash == remote.hash:
+                pass
+            else:
+                logger.info('Conflicting file: ' + self.path)
+
+    """
+      Serialization Helper
+    """
     @staticmethod
     def serializable():
         return [('path', 'TEXT'), ('hash', 'BLOB'),

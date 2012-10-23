@@ -27,15 +27,29 @@ class Folder(object):
         elements = os.listdir(path)
         self.childs = dict()
         for element in elements:
-            element = os.path.join(path, element)
-            if os.path.isfile(element):
-                self.childs[element] = WTFile.File(element)
-            elif os.path.isdir(element):
-                self.childs[element] = Folder(element)
+            absolutPath = os.path.join(path, element)
+            if os.path.isfile(absolutPath):
+                self.childs[element] = WTFile.File(absolutPath)
+            elif os.path.isdir(absolutPath):
+                self.childs[element] = Folder(absolutPath)
             else:
-                logger.debug(element)
-                logger.debug(os.stat(element))
+                logger.debug('Did not know what to do with:\n' +
+                            absolutPath)
 
-    def sync(self, remote):
-        if type(self) != type(remote):
+    def sync(self, remote, connection, single=False):
+        if not single and type(self) != type(remote):
             raise TypeError('Remote must be of type: ' + str(type(self)))
+        for key in self.childs:
+            if single:
+                remotePath = os.path.join(remote, key)
+            else:
+                try:
+                    self.childs[key].sync(remote=remote.childs[key],
+                                          connection=connection)
+                    continue
+                except KeyError:
+                    remotePath = os.path.join(remote.path, key)
+                    logger.debug('Remote Object missing for ' +
+                                 remotePath + ': Entering single Mode')
+            self.childs[key].sync(remote=remotePath, connection=connection,
+                                   single=True)
