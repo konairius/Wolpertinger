@@ -73,13 +73,14 @@ class Cache(object):
         cursor = database.cursor()
         cursor.execute(getStatement)
         buildDict = dict()
-        i = 0
-        try:
-            for value in cursor.fetchone():
-                buildDict[self.fields[i][0]] = value
-                i += 1
-        except TypeError:
+        
+        result = cursor.fetchall()
+        if len(result) < 1:
             raise CacheMissError()
+        i = 0
+        for value in result[0]:
+            buildDict[self.fields[i][0]] = value
+            i += 1
         return self.cacheType.deserialize(buildDict)
 
     def remove(self, delObject):
