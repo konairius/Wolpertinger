@@ -73,7 +73,7 @@ class Cache(object):
         cursor = database.cursor()
         cursor.execute(getStatement)
         buildDict = dict()
-        
+
         result = cursor.fetchall()
         if len(result) < 1:
             raise CacheMissError()
@@ -84,4 +84,16 @@ class Cache(object):
         return self.cacheType.deserialize(buildDict)
 
     def remove(self, delObject):
-        pass
+        deleteStatement = 'DELETE FROM '
+        deleteStatement += str(self.cacheType)[8:-2].replace('.', '_')
+        deleteStatement += ' WHERE '
+        serialized = delObject.serialize()
+        for i in range(len(self.fields)):
+            deleteStatement += '"' + self.fields[i][0] + '"'
+            deleteStatement += ' = '
+            deleteStatement += '"' + str(serialized[i]) + '"'
+            deleteStatement += ' AND '
+        deleteStatement = deleteStatement[:-5]
+        logger.debug(deleteStatement)
+        cursor = database.cursor()
+        cursor.execute(deleteStatement)

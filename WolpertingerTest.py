@@ -22,7 +22,10 @@ from WTlib import WTTransport
 from WTlib import WTTransport_cp
 
 
-class TestWTFile(unittest.TestCase):
+class DefaultTest(unittest.TestCase):
+
+    def setUp(self):
+        WTTransport_cp.cpProvider.register()
 
     def test_createFileFromDisk(self):
         path = '/etc/hosts'
@@ -42,24 +45,15 @@ class TestWTFile(unittest.TestCase):
         self.assertTrue(forceTestFile.mtime == autoTestFile.mtime,
                          'Mtimes do not match')
 
-
-class TestWTFolder(unittest.TestCase):
-
     def test_createFolder(self):
         path = '/home/konsti/tmp/SyncTestSource'
         testFolder = WTFolder.Folder(path)
         self.assertTrue(testFolder.path == path, 'Creating failed')
 
-
-class TestWTTransport(unittest.TestCase):
-
-        def setUp(self):
-            WTTransport_cp.cpProvider.register()
-
-        def test_localCopy(self):
-            sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/tvshow.nfo'
-            targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/tvshow.nfo'
-            URI = 'localhost'
-            transporter = WTTransport.tansportJob(URI, sourcePath,
-                                                  URI, targetPath)
-            transporter.start()
+    def test_localCopy(self):
+        sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/tvshow.nfo'
+        targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/tvshow.nfo'
+        URI = 'localhost'
+        transporter = WTTransport.tansportJob(URI, sourcePath,
+                                              URI, targetPath)
+        transporter.start()
