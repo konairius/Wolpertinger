@@ -17,4 +17,4 @@ import concurrent.futures
 
 logger = logging.getLogger(__name__)
 
-workerPool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+workerPool = concurrent.futures.ThreadPoolExecutor(max_workers=2)

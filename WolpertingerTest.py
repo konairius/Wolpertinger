@@ -19,7 +19,9 @@ FORMAT = "%(asctime)s | %(levelname)s | %(name)s: %(message)s"
 logging.basicConfig(format=FORMAT,
                     filename='unittest.log',
                     level=logging.DEBUG)
-from WTlib import WTJobs
+
+logger = logging.getLogger(__name__)
+
 from WTlib import WTFile
 from WTlib import WTFolder
 from WTlib import WTTransport
@@ -76,6 +78,7 @@ class DefaultTest(unittest.TestCase):
 
         testSourceFolder.sync(testTargetFolder, connection)
 
-        for job in WTTransport.queue:
+        for job in WTTransport.enqueuedTransports:
             job.start()
-        WTJobs.workerPool._work_queue.join()
+        while not len(WTTransport.runningTransports) == 0:
+            pass

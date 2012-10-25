@@ -61,12 +61,11 @@ class File(object):
 
     def sync(self, remote, connection, single=False):
         if single:
-            WTTransport.queue.append(
-                        WTTransport.tansportJob(
-                                    connection.localURI,
-                                    self.path,
-                                    connection.remoteURI,
-                                    remote))
+            WTTransport.tansportJob(
+                        connection.localURI,
+                        self.path,
+                        connection.remoteURI,
+                        remote)
         else:
             if self.hash == remote.hash:
                 pass

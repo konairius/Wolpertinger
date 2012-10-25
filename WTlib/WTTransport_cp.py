@@ -27,9 +27,16 @@ class cpProvider(object):
         self.targetPath = transportJob.remotePath
 
     def start(self):
+        logger.debug('Starting local Copy: '
+                     + self.sourcePath + ' -> '
+                     + self.targetPath)
         if not os.path.exists(os.path.dirname(self.targetPath)):
             os.makedirs(os.path.dirname(self.targetPath))
         shutil.copy(self.sourcePath, self.targetPath)
+        logger.debug('Finished local Copy: '
+                     + self.sourcePath + ' -> '
+                     + self.targetPath)
+        #WTTransport.runningTransports.remove(self)
 
     @staticmethod
     def register():
