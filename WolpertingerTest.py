@@ -27,7 +27,7 @@ from WTlib import WTFolder
 from WTlib import WTTransport
 from WTlib import WTTransport_cp
 from WTlib import WTConnection
-from WTlib import WTQueue
+#from WTlib import WTQueue
 
 
 class DefaultTest(unittest.TestCase):
@@ -71,7 +71,7 @@ class DefaultTest(unittest.TestCase):
         sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
         targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
         URI = 'localhost'
-        transporter = WTTransport.tansportJob(URI, sourcePath,
+        WTTransport.tansportJob(URI, sourcePath,
                                               URI, targetPath)
         for provider in WTTransport.transportProviders:
             provider.start()
@@ -88,3 +88,7 @@ class DefaultTest(unittest.TestCase):
         self.assertTrue(testTargetFolder.path == targetPath, 'Creating failed')
 
         testSourceFolder.sync(testTargetFolder, connection)
+
+        for provider in WTTransport.transportProviders:
+            while len(provider.getJobs()) > 0:
+                provider.start()

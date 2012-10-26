@@ -22,7 +22,9 @@ class Queue(object):
         self.queue.sort(key=lambda job: job[0])
 
     def get(self):
-        return self.queue.pop()
+        if len(self.queue) > 0:
+            return self.queue.pop()[1]
+        return None
 
     def remove(self, item):
         self.queue = []

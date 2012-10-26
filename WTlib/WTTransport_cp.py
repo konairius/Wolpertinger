@@ -42,9 +42,10 @@ class cpProvider(WTTransport.TransportProvider):
         #             + self.sourcePath + ' -> '
         #             + self.targetPath)
         transportJob = self.jobs.get()
-        if not os.path.exists(os.path.dirname(transportJob[1].remotePath)):
-            os.makedirs(os.path.dirname(transportJob[1].remotePath))
-        shutil.copy(transportJob[1].localPath, transportJob[1].remotePath)
+        if transportJob != None:
+            if not os.path.exists(os.path.dirname(transportJob.remotePath)):
+                os.makedirs(os.path.dirname(transportJob.remotePath))
+            shutil.copy(transportJob.localPath, transportJob.remotePath)
         #logger.debug('Finished local Copy: '
         #             + self.sourcePath + ' -> '
         #             + self.targetPath)
