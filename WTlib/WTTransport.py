@@ -68,8 +68,7 @@ class TransportProvider(object, metaclass=abc.ABCMeta):
 class tansportJob(object):
 
     def __init__(self, localURI, localPath, remoteURI, remotePath):
-        logger.debug('New Transport Job: ' + localURI + ':' + localPath +
-                     ' -> ' + remoteURI + ':' + remotePath)
+
         self.localURI = localURI
         self.localPath = localPath
         self.remoteURI = remoteURI
@@ -77,13 +76,16 @@ class tansportJob(object):
         for provider in transportProviders:
             if provider.add(self):
                 self.provider = provider
+                logger.debug('New Transport Job: ' + localURI + ':'
+                             + localPath +
+                             ' -> ' + remoteURI + ':' + remotePath)
                 return
 
         raise NoTransportFoundError('No Transportprovider for ' +
                                     remoteURI + ' was Found')
 
-    def start(self):
-        self.provider.start(self)
+    #def start(self):
+    #    self.provider.start(self)
 
 
 def register(provider):

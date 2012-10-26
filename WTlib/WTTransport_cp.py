@@ -14,7 +14,7 @@ __version__ = '0.0.1'
 import os
 import shutil
 import logging
-import queue
+from WTlib import WTQueue
 
 from WTlib import WTTransport
 
@@ -24,32 +24,27 @@ logger = logging.getLogger(__name__)
 class cpProvider(WTTransport.TransportProvider):
 
     def __init__(self):
-        self.jobs = queue.PriorityQueue()
+        self.jobs = WTQueue.Queue()
 
     def add(self, transportJob, priority=10):
         if transportJob.localURI == transportJob.remoteURI == 'localhost':
-            self.jobs.put(priority, transportJob)
-            transportJob.priority = priority
+            logger.debug('Adding transport Job to cpProvider')
+            self.jobs.put(transportJob, priority)
             return True
         return False
 
     def remove(self, transportJob):
-        self.jobs.queue.remove((transportJob.priority, transportJob))
+        self.jobs.remove(transportJob)
 
-    def start(self, transportJob=0):
+    def start(self):
 
-        if type(transportJob) == WTTransport.tansportJob:
-            self.remove(transportJob)
-            self.add(transportJob, 0)
-            return self.start()
         #logger.debug('Starting local Copy: '
         #             + self.sourcePath + ' -> '
         #             + self.targetPath)
-        if transportJob == 0:
-            transportJob = self.jobs.get()
-            if not os.path.exists(os.path.dirname(transportJob[0].remotePath)):
-                os.makedirs(os.path.dirname(transportJob[0].remotePath))
-            shutil.copy(transportJob[0].localPath, transportJob[0].remotePath)
+        transportJob = self.jobs.get()
+        if not os.path.exists(os.path.dirname(transportJob[1].remotePath)):
+            os.makedirs(os.path.dirname(transportJob[1].remotePath))
+        shutil.copy(transportJob[1].localPath, transportJob[1].remotePath)
         #logger.debug('Finished local Copy: '
         #             + self.sourcePath + ' -> '
         #             + self.targetPath)

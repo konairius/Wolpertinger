@@ -27,6 +27,7 @@ from WTlib import WTFolder
 from WTlib import WTTransport
 from WTlib import WTTransport_cp
 from WTlib import WTConnection
+from WTlib import WTQueue
 
 
 class DefaultTest(unittest.TestCase):
@@ -63,7 +64,8 @@ class DefaultTest(unittest.TestCase):
         URI = 'localhost'
         transporter = WTTransport.tansportJob(URI, sourcePath,
                                               URI, targetPath)
-        transporter.start()
+        for provider in WTTransport.transportProviders:
+            provider.start()
 
     def test_localCopyBigFile(self):
         sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
@@ -71,7 +73,8 @@ class DefaultTest(unittest.TestCase):
         URI = 'localhost'
         transporter = WTTransport.tansportJob(URI, sourcePath,
                                               URI, targetPath)
-        transporter.start()
+        for provider in WTTransport.transportProviders:
+            provider.start()
 
     def test_localCopySync(self):
         sourcePath = '/home/konsti/tmp/SyncTestSource'
