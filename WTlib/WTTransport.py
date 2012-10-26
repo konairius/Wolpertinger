@@ -15,16 +15,10 @@ import abc
 import logging
 #import inspect
 
-from WTlib import WTJobs
-
 
 logger = logging.getLogger(__name__)
 
 transportProviders = []
-
-runningTransports = []
-
-enqueuedTransports = []
 
 
 class InvalidProviderError(Exception):
@@ -43,20 +37,31 @@ class TransportProvider(object):
         """Create an Instance of the Provider"""
         return
 
+    @abc.abstractclassmethod
     def add(self, transportJob):
         """Adds a transport job to the providers queue,
         returns True on Success or False"""
         return
 
+    @abc.abstractclassmethod
     def remove(self, transportJob):
         """Removes a transport job to the providers queue"""
         return
 
+    @abc.abstractclassmethod
     def start(self, transportJob=0):
         """
         Starts the first job in the providers Queue
         or if given a specific job, removes that job from the queue
         on start
+        """
+        return
+
+    @abc.abstractclassmethod
+    def getJobs(self):
+        """
+        Returns the currently running and enqueued
+        Jobs for this Transportprovider
         """
         return
 
@@ -79,16 +84,13 @@ class tansportJob(object):
                                     remoteURI + ' was Found')
 
     def start(self):
-        enqueuedTransports.remove(self)
-        runningTransports.append(self)
-        provider = transportProviders[self.method](self)
-        WTJobs.workerPool.submit(provider.start)
+        self.provider.start(self)
 
 
 def register(provider):
     if not issubclass(provider, TransportProvider):
         raise InvalidProviderError('The Provider ' + provider.__name__
                                    + ' could not be registered')
-    TransportProvider.register(provider)
+    #TransportProvider.register(provider)
     global transportProviders
     transportProviders.append(provider)

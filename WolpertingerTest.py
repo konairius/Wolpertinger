@@ -77,8 +77,3 @@ class DefaultTest(unittest.TestCase):
         self.assertTrue(testTargetFolder.path == targetPath, 'Creating failed')
 
         testSourceFolder.sync(testTargetFolder, connection)
-
-        for job in WTTransport.enqueuedTransports:
-            job.start()
-        while not len(WTTransport.runningTransports) == 0:
-            pass

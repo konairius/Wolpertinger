@@ -20,7 +20,7 @@ from WTlib import WTTransport
 logger = logging.getLogger(__name__)
 
 
-class cpProvider(object):
+class cpProvider(WTTransport.TransportProvider):
 
     def __init__(self, transportJob):
         self.sourcePath = transportJob.localPath
@@ -40,4 +40,4 @@ class cpProvider(object):
 
     @staticmethod
     def register():
-        WTTransport.transportProviders['cp'] = cpProvider
+        WTTransport.register(cpProvider)
