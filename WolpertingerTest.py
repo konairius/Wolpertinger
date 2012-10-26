@@ -65,6 +65,14 @@ class DefaultTest(unittest.TestCase):
                                               URI, targetPath)
         transporter.start()
 
+    def test_localCopyBigFile(self):
+        sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
+        targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
+        URI = 'localhost'
+        transporter = WTTransport.tansportJob(URI, sourcePath,
+                                              URI, targetPath)
+        transporter.start()
+
     def test_localCopySync(self):
         sourcePath = '/home/konsti/tmp/SyncTestSource'
         targetPath = '/home/konsti/tmp/SyncTestTarget'

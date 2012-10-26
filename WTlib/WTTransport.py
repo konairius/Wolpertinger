@@ -29,26 +29,25 @@ class NoTransportFoundError(Exception):
     pass
 
 
-class TransportProvider(object):
-    __metaclass__ = abc.ABCMeta
+class TransportProvider(object, metaclass=abc.ABCMeta):
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def __init__(self):
         """Create an Instance of the Provider"""
         return
 
-    @abc.abstractclassmethod
-    def add(self, transportJob):
+    @abc.abstractmethod
+    def add(self, transportJob, priority=10):
         """Adds a transport job to the providers queue,
         returns True on Success or False"""
         return
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def remove(self, transportJob):
         """Removes a transport job to the providers queue"""
         return
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def start(self, transportJob=0):
         """
         Starts the first job in the providers Queue
@@ -57,7 +56,7 @@ class TransportProvider(object):
         """
         return
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def getJobs(self):
         """
         Returns the currently running and enqueued
@@ -93,4 +92,4 @@ def register(provider):
                                    + ' could not be registered')
     #TransportProvider.register(provider)
     global transportProviders
-    transportProviders.append(provider)
+    transportProviders.append(provider())
