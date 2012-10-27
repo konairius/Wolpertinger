@@ -22,73 +22,23 @@ logging.basicConfig(format=FORMAT,
 
 logger = logging.getLogger(__name__)
 
-from WTlib import WTFile
-from WTlib import WTFolder
+
 from WTlib import WTTransport
 from WTlib import WTTransport_cp
 from WTlib import WTConnection
-#from WTlib import WTQueue
+from WTlib import WTCom_local
 
 
-class DefaultTest(unittest.TestCase):
+class LocalTest(unittest.TestCase):
 
     def setUp(self):
-        WTTransport_cp.cpProvider.register()
+        WTTransport.register(WTTransport_cp.cpProvider)
+        WTConnection.register(WTCom_local.localCom)
 
-    def test_createFileFromDisk(self):
-        path = '/etc/hosts'
-        testFile = WTFile.File(path, True)
-        self.assertTrue(testFile.path == path)
-
-    def test_createAutoCheck(self):
-        path = '/etc/hosts'
-        forceTestFile = WTFile.File(path, True)
-        autoTestFile = WTFile.File(path, False)
-        self.assertTrue(forceTestFile.path == autoTestFile.path,
-                         'Paths do not match')
-        self.assertTrue(forceTestFile.hash == autoTestFile.hash,
-                         'Hashes do not match')
-        self.assertTrue(forceTestFile.size == autoTestFile.size,
-                         'Sizes do not match')
-        self.assertTrue(forceTestFile.mtime == autoTestFile.mtime,
-                         'Mtimes do not match')
-
-    def test_createFolder(self):
-        path = '/home/konsti/tmp/SyncTestSource'
-        testFolder = WTFolder.Folder(path)
-        self.assertTrue(testFolder.path == path, 'Creating failed')
-
-    def test_localCopySingleFile(self):
-        sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/tvshow.nfo'
-        targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/tvshow.nfo'
+    def test_LocalSync(self):
         URI = 'localhost'
-        #transporter = WTTransport.tansportJob(URI, sourcePath,
-        #                                      URI, targetPath)
-        for provider in WTTransport.transportProviders:
-            provider.start()
-
-    def test_localCopyBigFile(self):
-        sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
-        targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
-        URI = 'localhost'
-        #WTTransport.tansportJob(URI, sourcePath,
-        #                                      URI, targetPath)
-        for provider in WTTransport.transportProviders:
-            provider.start()
-
-    def test_localCopySync(self):
         sourcePath = '/home/konsti/tmp/SyncTestSource'
         targetPath = '/home/konsti/tmp/SyncTestTarget'
-        URI = 'localhost'
         connection = WTConnection.Connection(URI, URI)
-
-        testSourceFolder = WTFolder.Folder(sourcePath)
-        testTargetFolder = WTFolder.Folder(targetPath)
-        self.assertTrue(testSourceFolder.path == sourcePath, 'Creating failed')
-        self.assertTrue(testTargetFolder.path == targetPath, 'Creating failed')
-
-        testSourceFolder.sync(testTargetFolder, connection)
-
-        for provider in WTTransport.transportProviders:
-            while len(provider.getJobs()) > 0:
-                provider.start()
+        connection.sync(sourcePath, targetPath)
+        WTTransport.block()

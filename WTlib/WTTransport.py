@@ -64,6 +64,12 @@ class TransportProvider(object, metaclass=abc.ABCMeta):
         """
         return
 
+    @abc.abstractmethod
+    def block(self):
+        """
+        Blocks till all jobs are compleated
+        """
+
 
 class tansportJob(object):
 
@@ -95,3 +101,12 @@ def register(provider):
     #TransportProvider.register(provider)
     global transportProviders
     transportProviders.append(provider())
+
+
+def block():
+    allDone = False
+    while not allDone:
+        allDone = True
+        for provider in transportProviders:
+            if provider.block():
+                allDone = False

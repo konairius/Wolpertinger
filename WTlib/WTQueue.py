@@ -22,7 +22,7 @@ class Queue(object):
         self.queue.sort(key=lambda job: job[0])
 
     def get(self):
-        if len(self.queue) > 0:
+        if not self.isEmpty():
             return self.queue.pop()[1]
         return None
 
@@ -30,3 +30,6 @@ class Queue(object):
         self.queue = []
         for element in filter(lambda job: job[1] != item, self.queue):
             self.queue.append(element)
+
+    def isEmpty(self):
+        return len(self.queue) <= 0
