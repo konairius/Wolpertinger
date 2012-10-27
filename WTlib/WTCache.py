@@ -97,3 +97,5 @@ class Cache(object):
         #logger.debug(deleteStatement)
         cursor = database.cursor()
         cursor.execute(deleteStatement)
+        database.commit()
+        cursor.close()

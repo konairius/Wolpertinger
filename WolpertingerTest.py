@@ -62,8 +62,8 @@ class DefaultTest(unittest.TestCase):
         sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/tvshow.nfo'
         targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/tvshow.nfo'
         URI = 'localhost'
-        transporter = WTTransport.tansportJob(URI, sourcePath,
-                                              URI, targetPath)
+        #transporter = WTTransport.tansportJob(URI, sourcePath,
+        #                                      URI, targetPath)
         for provider in WTTransport.transportProviders:
             provider.start()
 
@@ -71,8 +71,8 @@ class DefaultTest(unittest.TestCase):
         sourcePath = '/home/konsti/tmp/SyncTestSource/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
         targetPath = '/home/konsti/tmp/SyncTestTarget/Episodes/Season 1/Episodes - S01E01 - Episode One.mkv'
         URI = 'localhost'
-        WTTransport.tansportJob(URI, sourcePath,
-                                              URI, targetPath)
+        #WTTransport.tansportJob(URI, sourcePath,
+        #                                      URI, targetPath)
         for provider in WTTransport.transportProviders:
             provider.start()
 

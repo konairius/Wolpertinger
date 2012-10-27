@@ -43,6 +43,7 @@ class File(object):
         self.hash = createHash(path)
         self.size = os.path.getsize(path)
         self.mtime = os.path.getmtime(path)
+        cache.remove(self)
         cache.add(self)
 
     def createFromCache(self, path):
@@ -99,6 +100,7 @@ class File(object):
 
 
 def createHash(path):
+    logger.info('Creating new hash for ' + path)
     sha1 = hashlib.sha1()
     with open(path, 'rb') as data:
         for chunk in iter(lambda: data.read(128 * sha1.block_size), b''):
