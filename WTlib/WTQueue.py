@@ -11,25 +11,31 @@ __copyright__ = 'Copyright (c) 2012 Konstantin Renner'
 __license__ = 'GPLv2'
 __version__ = '0.0.1'
 
+import threading
+
 
 class Queue(object):
 
     def __init__(self):
+        self.sema = threading.BoundedSemaphore(value=1)
         self.queue = []
 
     def put(self, item, priority):
-        self.queue.append((priority, item))
-        self.queue.sort(key=lambda job: job[0])
+        with self.sema:
+            self.queue.append((priority, item))
+            self.queue.sort(key=lambda job: job[0])
 
     def get(self):
-        if not self.isEmpty():
-            return self.queue.pop()[1]
-        return None
+        with self.sema:
+            if not self.isEmpty():
+                return self.queue.pop()[1]
+            return None
 
     def remove(self, item):
-        self.queue = []
-        for element in filter(lambda job: job[1] != item, self.queue):
-            self.queue.append(element)
+        with self.sema:
+            self.queue = []
+            for element in filter(lambda job: job[1] != item, self.queue):
+                self.queue.append(element)
 
     def isEmpty(self):
         return len(self.queue) <= 0

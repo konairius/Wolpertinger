@@ -31,7 +31,7 @@ class cpProvider(WTTransport.TransportProvider):
         if transportJob.localURI == transportJob.remoteURI == 'localhost':
             logger.debug('Adding transport Job to cpProvider')
             self.jobs.put(transportJob, priority)
-            self.workers.submit(self.start)
+            #self.workers.submit(self.start)
             return True
         return False
 
@@ -40,17 +40,19 @@ class cpProvider(WTTransport.TransportProvider):
 
     def start(self):
 
-        #logger.debug('Starting local Copy: '
-        #             + self.sourcePath + ' -> '
-        #             + self.targetPath)
         transportJob = self.jobs.get()
         if transportJob != None:
+            logger.info('Starting local Copy: '
+            + transportJob.localPath + ' -> '
+            + transportJob.remotePath)
             if not os.path.exists(os.path.dirname(transportJob.remotePath)):
                 os.makedirs(os.path.dirname(transportJob.remotePath))
             shutil.copy(transportJob.localPath, transportJob.remotePath)
+
         #logger.debug('Finished local Copy: '
         #             + self.sourcePath + ' -> '
         #             + self.targetPath)
+        return True
 
     def getJobs(self):
         return self.jobs.queue
@@ -63,5 +65,5 @@ class cpProvider(WTTransport.TransportProvider):
         if self.jobs.isEmpty():
             return False
         while not self.jobs.isEmpty():
-            pass
+            self.workers.submit(self.start)
         return True
