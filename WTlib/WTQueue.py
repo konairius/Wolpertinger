@@ -19,6 +19,7 @@ class Queue(object):
     def __init__(self):
         self.sema = threading.BoundedSemaphore(value=1)
         self.queue = []
+        self.runningTasks = 0
 
     def put(self, item, priority):
         with self.sema:
@@ -28,6 +29,7 @@ class Queue(object):
     def get(self):
         with self.sema:
             if not self.isEmpty():
+                self.runningTasks += 1
                 return self.queue.pop()[1]
             return None
 
@@ -37,5 +39,11 @@ class Queue(object):
             for element in filter(lambda job: job[1] != item, self.queue):
                 self.queue.append(element)
 
+    def done(self):
+        self.runningTasks -= 1
+
     def isEmpty(self):
         return len(self.queue) <= 0
+
+    def isDone(self):
+        return self.runningTasks == 0 and self.isEmpty()

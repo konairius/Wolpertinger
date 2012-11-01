@@ -17,6 +17,7 @@ import logging
 import concurrent.futures
 from WTlib import WTQueue
 from WTlib import WTTransport
+from WTlib import WTConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +26,13 @@ class cpProvider(WTTransport.TransportProvider):
 
     def __init__(self):
         self.jobs = WTQueue.Queue()
-        self.workers = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+        self.workers = concurrent.futures.ThreadPoolExecutor(max_workers=WTConfig.transportWorkers)
 
     def add(self, transportJob, priority=10):
         if transportJob.localURI == transportJob.remoteURI == 'localhost':
             logger.debug('Adding transport Job to cpProvider')
             self.jobs.put(transportJob, priority)
-            #self.workers.submit(self.start)
+            self.workers.submit(self.start)
             return True
         return False
 
@@ -47,7 +48,8 @@ class cpProvider(WTTransport.TransportProvider):
             + transportJob.remotePath)
             if not os.path.exists(os.path.dirname(transportJob.remotePath)):
                 os.makedirs(os.path.dirname(transportJob.remotePath))
-            shutil.copy(transportJob.localPath, transportJob.remotePath)
+            shutil.copyfile(transportJob.localPath, transportJob.remotePath)
+        self.jobs.done()
 
         #logger.debug('Finished local Copy: '
         #             + self.sourcePath + ' -> '
@@ -62,8 +64,9 @@ class cpProvider(WTTransport.TransportProvider):
         WTTransport.register(cpProvider)
 
     def block(self):
-        if self.jobs.isEmpty():
+        if self.jobs.isDone():
             return False
-        while not self.jobs.isEmpty():
-            self.workers.submit(self.start)
+        while not self.jobs.isDone():
+            if False:
+                self.workers.submit(self.start)
         return True

@@ -67,7 +67,7 @@ class TransportProvider(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def block(self):
         """
-        Blocks till all jobs are compleated
+        Blocks till all jobs are completed
         """
 
 

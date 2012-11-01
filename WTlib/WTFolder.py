@@ -13,11 +13,15 @@ __version__ = '0.0.1'
 
 import os
 import logging
+#from concurrent.futures import ProcessPoolExecutor
 
 from WTlib import WTFile
+#from WTlib import WTConfig
 
 
 logger = logging.getLogger(__name__)
+
+#workers = ProcessPoolExecutor(max_workers=WTConfig.creationWorkers)
 
 
 class Folder(object):

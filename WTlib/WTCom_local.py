@@ -24,7 +24,7 @@ class localCom(WTConnection.ComProvider):
         self.connections = []
 
     def add(self, connection):
-        if connection.remoteURI == connection.localURI == 'localhost':
+        if 'localhost' in connection.remoteURI:
             self.connections.append(connection)
             return True
         return False

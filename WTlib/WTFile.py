@@ -71,7 +71,7 @@ class File(object):
             if self.hash == remote.hash:
                 pass
             else:
-                logger.info('Conflicting file: ' + self.path)
+                logger.warning('Conflicting file: ' + self.path)
 
     """
       Serialization Helper
