@@ -7,7 +7,6 @@ __license__ = 'GPLv2'
 __version__ = '0.0.1'
 
 import os
-import shutil
 import logging
 import concurrent.futures
 import tarfile
@@ -25,7 +24,8 @@ class tarProvider(WTTransport.TransportProvider):
         self.workers = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def add(self, transportJob, priority=10):
-        if transportJob.localURI == 'localhost' and transportJob.remoteURI.split(':')[0] == 'tar':
+        if (transportJob.localURI == 'localhost'
+        and transportJob.remoteURI.split(':')[0] == 'tar'):
             self.jobs.put(transportJob, priority)
             self.workers.submit(self.start)
             return True
@@ -39,7 +39,8 @@ class tarProvider(WTTransport.TransportProvider):
         transportJob = self.jobs.get()
         if transportJob != None:
             tarPath = os.path.join(WTConfig.tarTransportPath,
-                                   transportJob.remoteURI + '.tar')
+                                   transportJob.remoteURI.split(':')[1]
+                                   + '.tar')
             logger.info('Starting Tar Transport using file' + tarPath + ': '
             + transportJob.localPath + ' -> '
             + transportJob.remotePath)
