@@ -16,11 +16,22 @@ class MessageParser(object):
 
     def __init__(self, message):
         self.message = message
+        self.parsFlags()
 
-    def parsFlag(self, flag):
-        position = self.message.find(flag)
-        value = self.message[position + len(flag) + 1: self.message.find(';', position)]
-        return value
+    def parsFlags(self):
+        self.flags = dict()
+        try:
+            flagstrings = self.message[:self.message.index('<')].split(';')
+        except(ValueError):
+            flagstrings = self.message.split(';')
+            logger.warning('got message with out data')
+            #return
+        for flag in flagstrings:
+            flag = flag.split(':')
+            self.flags[flag[0]] = flag[1]
+
+    def getFlag(self, flag):
+        return self.flags[flag]
 
 
 class Server(object):

@@ -28,7 +28,7 @@ from WTlib import WTTransport_cp
 from WTlib import WTTransport_externalTarball
 from WTlib import WTConnection
 from WTlib import WTCom_local
-from WTlib import WTCom_xmlRpc
+from WTlib import WTCom_WolpertingerRpc
 
 
 class LocalTest(unittest.TestCase):
@@ -37,7 +37,6 @@ class LocalTest(unittest.TestCase):
         if len(WTTransport.transportProviders) == 0:
             WTTransport.register(WTTransport_cp.cpProvider)
             WTTransport.register(WTTransport_externalTarball.tarProvider)
-            WTConnection.register(WTCom_xmlRpc.xmlRpcClient)
             WTConnection.register(WTCom_local.localCom)
 
     def test_LocalSync(self):
@@ -57,11 +56,13 @@ class LocalTest(unittest.TestCase):
         connection.sync(sourcePath, targetPath)
         WTTransport.block()
 
-    def test_xmlrpcCom(self):
-        rpcserver = WTCom_xmlRpc.xmlRpcServer()
-        localURI = 'localhost'
-        remoteURI = 'http://localhost:8000/'
-        sourcePath = '/home/konsti/tmp/SyncTestSource'
-        targetPath = '/home/konsti/tmp/SyncTestTarget'
-        connection = WTConnection.Connection(localURI, remoteURI)
-        connection.sync(sourcePath, targetPath)
+    def test_wolpertingerRpcParser(self):
+        testString = 'signature:HvEjPJcGxW2K7K5;secure:aes;gzip:50;\
+            xdzBd2ITRH5uk00xz7sdPC4n4JFDKEFlAyyyeWO4WObAux4iRMi5MoQD'
+        parser = WTCom_WolpertingerRpc.MessageParser(testString)
+        self.assertEqual(parser.getFlag('gizp'), '50',
+                         'gzip was not parsed Correctly')
+        self.assertEqual(parser.getFlag('secure'), 'aes',
+                         'secure was not parsed Correctly')
+        self.assertEqual(parser.getFlag('signature'), 'HvEjPJcGxW2K7K5',
+                         'signature was not parsed Correctly')
