@@ -13,7 +13,6 @@ __version__ = '0.1.1'
 
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.client import ServerProxy
-from xmlrpc.client import Binary
 import os
 
 from WTlib import WTFolder
@@ -36,7 +35,8 @@ class xmlRpcServer(object):
             server.serve_forever()
 
     def getNode(self, path):
-        return Binary(WTFolder.Folder(path))
+        logger.info('Getting remote sync request for ' + path)
+        return WTFolder.Folder(path)
 
 
 class xmlRpcClient(WTConnection.ComProvider):
@@ -53,4 +53,5 @@ class xmlRpcClient(WTConnection.ComProvider):
     def getNode(self, path, connection):
         if connection in self.connections:
             server = ServerProxy(connection.remoteURI)
-            return server.getNode(path).data()
+            remote = WTFolder.Folder('', True, (server.getNode(path)))
+            return remote

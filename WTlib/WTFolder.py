@@ -26,7 +26,10 @@ logger = logging.getLogger(__name__)
 
 class Folder(object):
 
-    def __init__(self, path):
+    def __init__(self, path='', fromDict=False, dictionary=''):
+        if fromDict:
+            self.__dict__.update(dictionary)
+            return
         self.path = path
         elements = os.listdir(path)
         self.childs = dict()
@@ -57,3 +60,7 @@ class Folder(object):
                                  remotePath + ': Entering single Mode')
             self.childs[key].sync(remote=remotePath, connection=connection,
                                    single=True)
+
+    def serialize(self):
+        result = ''
+        

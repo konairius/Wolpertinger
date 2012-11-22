@@ -59,5 +59,7 @@ def register(provider):
     if not issubclass(provider, ComProvider):
         raise InvalidProviderError('The Provider ' + provider.__name__
                                    + ' could not be registered')
+    else:
+        logger.debug('Registering ComProvider ' + provider.__name__)
     global comProviders
     comProviders.append(provider())

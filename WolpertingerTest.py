@@ -60,7 +60,7 @@ class LocalTest(unittest.TestCase):
     def test_xmlrpcCom(self):
         rpcserver = WTCom_xmlRpc.xmlRpcServer()
         localURI = 'localhost'
-        remoteURI = 'http://localhost/'
+        remoteURI = 'http://localhost:8000/'
         sourcePath = '/home/konsti/tmp/SyncTestSource'
         targetPath = '/home/konsti/tmp/SyncTestTarget'
         connection = WTConnection.Connection(localURI, remoteURI)
