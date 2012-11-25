@@ -12,13 +12,19 @@ __version__ = '0.0.1'
 import logging
 logger = logging.getLogger(__name__)
 
+import xml.dom.minidom as DOM
+
 
 class MessageParser(object):
 
     def __init__(self, message):
+        self.knownMethodes = ['RemoteMethodCall',
+                              'RemoteMethodResponse',
+                              'RemoteError']
         self.message = message
         self.parseFlags()
         self.extract()
+        self.parseXml()
 
     def parseFlags(self):
         self.flags = dict()
@@ -52,10 +58,18 @@ class MessageParser(object):
         except(KeyError):
             logger.info('got unsigned message')
 
-        self.xml = message
+        self.xml = DOM.parseString(message)
 
+    def parseXml(self):
+        if self.xml.nodeName in self.knownMethodes:
+            self.type = self.xml.nodeName
 
-    #def parseXml(self):
+            if self.type == 'RemoteMethodCall':
+                pass
+            elif self.type == 'RemoteMethodResponse':
+                pass
+            elif self.type == 'RemoteMethodError':
+                pass
 
 
 class Server(object):
