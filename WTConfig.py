@@ -41,3 +41,6 @@ class Config(object):
             return bytes(self.config['Sync']['SharedKey'],'UTF-8')
         except KeyError:
             return None
+        
+    def getPublicAddress(self):
+        return self.config['Sync']['Address']
