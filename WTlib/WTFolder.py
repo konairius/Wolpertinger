@@ -60,7 +60,3 @@ class Folder(object):
                                  remotePath + ': Entering single Mode')
             self.childs[key].sync(remote=remotePath, connection=connection,
                                    single=True)
-
-    def serialize(self):
-        result = ''
-        

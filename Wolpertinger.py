@@ -11,7 +11,7 @@ import argparse
 from WTlib import WTConnection
 from WTlib import WTTransport
 from WTlib import WTTransport_cp
-from WTlib import WTCom_local
+from WTCom import Local
 
 logger = logging.getLogger(__name__)
 
@@ -37,5 +37,5 @@ def main():
 
 if __name__ == '__main__':
     WTTransport.register(WTTransport_cp.cpProvider)
-    WTConnection.register(WTCom_local.localCom)
+    WTConnection.register(Local.localCom)
     main()

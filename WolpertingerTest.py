@@ -36,7 +36,7 @@ class ParserTest(unittest.TestCase):
     def test_CleartextMessage(self):
         testString = 'signature:HvEjPJcGxW2K7K5;\n\
 <RemoteMethodCall>\n\
-    <TargetName></TargetName>\n\
+    <TargetName>Core</TargetName>\n\
     <CallId>F5AFEC97-5839-4666-B8D3-8C108B241720</CallId>\n\
     <MethodName>testMethod1</MethodName>\n\
     <Parameters>\n\
@@ -47,8 +47,6 @@ class ParserTest(unittest.TestCase):
         parser = WolpertingerRpc.MessageParser(testString)
         self.assertEqual(parser.getFlag('signature'), 'HvEjPJcGxW2K7K5',
                          'signature was not parsed Correctly')
-        self.assertTrue(testString.find(parser.xml),
-                        'the XML was not extracted')
         self.assertEqual(parser.type, 'RemoteMethodCall',
                          'type was not identified Correctly')
 
