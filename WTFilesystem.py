@@ -24,7 +24,8 @@ class File(object):
     @classmethod
     def fromPath(cls, path):
         global fileCounter
-        lib = shelve.open(WTConfig.getFileDatabase())
+        config = WTConfig.getConfig()
+        lib = shelve.open(config.getFileCache())
         size = os.path.getsize(path)
         mtime = os.path.getmtime(path)
         try:
@@ -126,7 +127,7 @@ class Folder(object):
                 remotePath = os.path.join(folder.getPath(), (os.path.relpath(self.items[key].getPath(), self.path)))
                 syncList.append((localPath, remotePath))
         if twoWay:
-            syncList += folder.sync(self)
+            syncList += folder.sync(self, False)
 
         return syncList
 
@@ -135,9 +136,6 @@ class Folder(object):
 
     def getPath(self):
         return self.path
-
-    def getRootPath(self):
-        return self.rootPath
 
 
 class FileChangedError(Exception):

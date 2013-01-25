@@ -18,8 +18,8 @@ import WTPyro
 class TestWTFilesystem(unittest.TestCase):
 
     def testFile(self):
-        file1 = WTFilesystem.File.fromPath('/home/konsti/Videos/Asterix_bei_den_Briten.mkv')
-        file2 = WTFilesystem.File.fromPath('/home/konsti/Videos/Asterix_Operation_Hinkelstein.mkv')
+        file1 = WTFilesystem.File.fromPath('/home/konsti/Videos/Sherlock - S02E03 - The Reichenbach Fall.mkv')
+        file2 = WTFilesystem.File.fromPath('/home/konsti/tmp/WTFiles')
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
 

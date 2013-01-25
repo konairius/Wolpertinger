@@ -32,10 +32,12 @@ class Server(object):
         '''
         Constructor
         '''
+        config = WTConfig.getConfig()
         manager = Manager()
+        Pyro4.config.HMAC_KEY = config.getSharedKey()
         Pyro4.Daemon.serveSimple(
                                  {
-                                    manager: WTConfig.getServername()
+                                    manager: config.getServicename()
                                   },
                                  ns=True
                                  )
@@ -44,6 +46,8 @@ class Server(object):
 class Client(object):
 
     def __init__(self, remoteServername):
+        config = WTConfig.getConfig()
+        Pyro4.config.HMAC_KEY = config.getSharedKey()
         uri = 'PYRONAME:' + remoteServername
         self.server = Pyro4.Proxy(uri)
 
