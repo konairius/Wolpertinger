@@ -16,6 +16,17 @@ from multiprocessing import Process
 
 import WTFilesystem
 import WTPyro
+import WTConfig
+
+
+class TestWTConfig(unittest.TestCase):
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.config = WTConfig.getConfig()
+
+    def testGetExposedFolders(self):
+        self.config.getExposedFolders()
 
 
 class TestWTFilesystem(unittest.TestCase):

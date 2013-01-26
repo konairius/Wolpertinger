@@ -112,10 +112,12 @@ class Client(object):
 
 
 class Interface(object):
+    '''
+    The interface that will be exposed via Pyro
+    '''
     def __init__(self):
         pass
 
-    @staticmethod
-    def getFolder(path):
+    def getFolder(self, path):
         logger.info('Serving remote Request: ' + path)
         return WTFilesystem.Folder(path)

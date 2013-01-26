@@ -18,29 +18,34 @@ def getConfig():
 
 
 class Config(object):
-    
+
     def __init__(self, configPath='wolpertinger.conf'):
         global config
         self.config = configparser.ConfigParser()
         self.config.read(configPath)
         config = self
-    
+
     def getFileCache(self):
-        return self.config['Filecache']['Path']
-    
-    
+        return self.config['Global']['Cachepath']
+
     def updateOlder(self):
-        return self.config['Sync']['Overwrite Older'] == 'Yes'
-    
-    
+        return self.config['Global']['OverwriteOlder'] == 'Yes'
+
     def getServicename(self):
-        return self.config['Sync']['Servicename']
-    
+        return self.config['Global']['Servicename']
+
     def getSharedKey(self):
         try:
-            return bytes(self.config['Sync']['SharedKey'],'UTF-8')
+            return bytes(self.config['Global']['SharedKey'], 'UTF-8')
         except KeyError:
             return None
-        
+
     def getPublicAddress(self):
-        return self.config['Sync']['Address']
+        return self.config['Global']['Address']
+
+    def getExposedFolders(self):
+        folders = dict()
+        for share in self.config.keys():
+            if not share in ['Global', 'DEFAULT']:
+                folders[share] = self.config[share]['path']
+        return folders
