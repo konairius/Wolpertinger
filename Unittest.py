@@ -10,7 +10,10 @@ logging.basicConfig(level=logging.DEBUG, filename='/home/konsti/tmp/WTBase.log',
 
 logger = logging.getLogger(__name__)
 
+import time
 import unittest
+from multiprocessing import Process
+
 import WTFilesystem
 import WTPyro
 
@@ -36,6 +39,11 @@ class TestWTFilesystem(unittest.TestCase):
 
 
 class TestWTPyro(unittest.TestCase):
+    
+    def setUp(self):
+        self.server = Process(target=WTPyro.Server)
+        self.server.start()
+        time.sleep(10)
 
     def testClient(self):
         folder1 = WTFilesystem.Folder('/home/konsti/tmp')
@@ -44,6 +52,9 @@ class TestWTPyro(unittest.TestCase):
         syncList = folder1.sync(folder2, True)
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
+            
+    def tearDown(self):
+        self.server.terminate()
 
 
 if __name__ == "__main__":

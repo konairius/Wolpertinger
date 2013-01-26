@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 from multiprocessing import Process
 import select
+import time
 
 import Pyro4
 
@@ -38,13 +39,13 @@ class Server(object):
         manager = Manager()
         Pyro4.config.HMAC_KEY = self.config.getSharedKey()
         Pyro4.config.HOST = self.config.getPublicAddress()
-        self.enshureNameserver()
-        Pyro4.Daemon.serveSimple(
-                                 {
-                                    manager: self.config.getServicename()
-                                  },
-                                 ns=True
-                                 )
+        if self.enshureNameserver():
+            Pyro4.Daemon.serveSimple(
+                                     {
+                                        manager: self.config.getServicename()
+                                      },
+                                     ns=True
+                                     )
 
     def enshureNameserver(self):
         try:
@@ -53,6 +54,7 @@ class Server(object):
         except Pyro4.errors.NamingError:
             self.ns = Process(target=self.startNameserver())
             self.ns.start()
+            time.sleep(5)
             return self.enshureNameserver()
     @staticmethod    
     def startNameserver():
@@ -62,7 +64,7 @@ class Server(object):
         nameserverUri, nameserverDaemon, broadcastServer = Pyro4.naming.startNS(host=hostname)
         pyrodaemon=Pyro4.core.Daemon(host=hostname)
         #serveruri=pyrodaemon.register(Manager())
-        #nameserverDaemon.nameserver.register('manager.' + str(hostname), serveruri)
+        #nameserverDaemon.nameserver.register(config.getServicename(), serveruri)
         while True:
             nameserverSockets = set(nameserverDaemon.sockets)
             pyroSockets = set(pyrodaemon.sockets)
