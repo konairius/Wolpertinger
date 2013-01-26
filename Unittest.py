@@ -38,12 +38,22 @@ class TestWTFilesystem(unittest.TestCase):
         logger.debug('Created ' + str(WTFilesystem.fileCounter) + ' File Objects!')
 
 
-class TestWTPyro(unittest.TestCase):
-    
+class TestWTPyroManager(unittest.TestCase):
+
+    def testManager(self):
+        manager = WTPyro.Manager()
+        manager.startServer()
+        time.sleep(5)
+        manager.stopServer()
+
+
+class TestWTPyroClient(unittest.TestCase):
+
     def setUp(self):
-        self.server = Process(target=WTPyro.Server)
-        self.server.start()
-        time.sleep(10)
+        unittest.TestCase.setUp(self)
+        self.manager = WTPyro.Manager()
+        self.manager.startServer()
+        time.sleep(5)
 
     def testClient(self):
         folder1 = WTFilesystem.Folder('/home/konsti/tmp')
@@ -52,10 +62,10 @@ class TestWTPyro(unittest.TestCase):
         syncList = folder1.sync(folder2, True)
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
-            
-    def tearDown(self):
-        self.server.terminate()
 
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+        self.manager.stopServer()
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWTFilesystem']

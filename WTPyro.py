@@ -19,77 +19,84 @@ import WTConfig
 class Manager(object):
 
     def __init__(self):
-        pass
+        self.config = WTConfig.getConfig()
 
-    def getFolder(self, path):
-        logger.info('Serving remote Request: ' + path)
-        return WTFilesystem.Folder(path)
+    def startServer(self):
+        self.server = Server(self.config.getPublicAddress())
+        self.server.enshureNameserver()
+        self.server.registerService(Interface, self.config.getServicename())
+
+    def stopServer(self):
+        self.server.close()
 
 
 class Server(object):
     '''
-    classdocs
+    Use the manager to comuinicate with this class
     '''
 
-    def __init__(self):
+    def __init__(self, address='localhost', sharedKey=None):
         '''
-        Constructor
+        should only be called by the manager
         '''
-        self.config = WTConfig.getConfig()
-        manager = Manager()
-        Pyro4.config.HMAC_KEY = self.config.getSharedKey()
-        Pyro4.config.HOST = self.config.getPublicAddress()
-        if self.enshureNameserver():
-            Pyro4.Daemon.serveSimple(
-                                     {
-                                        manager: self.config.getServicename()
-                                      },
-                                     ns=True
-                                     )
+        Pyro4.config.HMAC_KEY = sharedKey
+        Pyro4.config.HOST = address
+        self.isNameserver = False
+        self.address = address
+        self.services = []
+
+    def close(self):
+        logger.info('Closing server on ' + self.address)
+        for uri, process in self.services:
+            self.nameserver.unregister(uri)
+            process.terminate()
+        if self.isNameserver:
+            self.nameserverProcess.terminate()
 
     def enshureNameserver(self):
         try:
-            Pyro4.naming.locateNS()
+            logger.debug('Trying to locate Nameserver')
+            self.nameserver = Pyro4.naming.locateNS()
             return True
         except Pyro4.errors.NamingError:
-            self.ns = Process(target=self.startNameserver())
-            self.ns.start()
+            logger.debug('Failed, starting my own one')
+            self.nameserverProcess = Process(target=self.startNameserver, args=(self.address,))
+            self.nameserverProcess.start()
+            self.isNameserver = True
             time.sleep(5)
             return self.enshureNameserver()
-    @staticmethod    
-    def startNameserver():
-        logger.info('Starting local Nameserver')
-        config = WTConfig.getConfig()
-        hostname = config.getPublicAddress()
-        nameserverUri, nameserverDaemon, broadcastServer = Pyro4.naming.startNS(host=hostname)
-        pyrodaemon=Pyro4.core.Daemon(host=hostname)
-        #serveruri=pyrodaemon.register(Manager())
-        #nameserverDaemon.nameserver.register(config.getServicename(), serveruri)
+
+    @staticmethod
+    def startNameserver(hostname):
+        logger.info('Starting local Nameserver on ' + hostname)
+        nameserverUri, nameserverDaemon, broadcastServer = Pyro4.naming.startNS(hostname)
         while True:
             nameserverSockets = set(nameserverDaemon.sockets)
-            pyroSockets = set(pyrodaemon.sockets)
-            rs=[broadcastServer]  # only the broadcast server is directly usable as a select() object
+            rs = [broadcastServer]  # only the broadcast server is directly usable as a select() object
             rs.extend(nameserverSockets)
-            rs.extend(pyroSockets)
-            rs,_,_ = select.select(rs,[],[],3)
-            eventsForNameserver=[]
-            eventsForDaemon=[]
+            rs, _, _ = select.select(rs, [], [], 3)
+            eventsForNameserver = []
             for s in rs:
                 if s is broadcastServer:
                     logger.debug('Broadcast server received a request')
                     broadcastServer.processRequest()
                 elif s in nameserverSockets:
                     eventsForNameserver.append(s)
-                elif s in pyroSockets:
-                    eventsForDaemon.append(s)
             if eventsForNameserver:
                 logger.debug('Nameserver received a request')
                 nameserverDaemon.events(eventsForNameserver)
-            if eventsForDaemon:
-                logger.debug('Daemon received a request')
-                pyrodaemon.events(eventsForDaemon)
-                
-        
+
+    def registerService(self, service, servicename):
+        if self.enshureNameserver():
+            pyrodaemon = Pyro4.core.Daemon(host=self.address)
+            serveruri = pyrodaemon.register(service())
+            self.nameserver.register(servicename, serveruri)
+            serviceHandler = Process(target=pyrodaemon.requestLoop)
+            serviceHandler.start()
+            self.services.append((serveruri, serviceHandler))
+        else:
+            raise Pyro4.errors.NamingError()
+
 
 class Client(object):
 
@@ -102,3 +109,13 @@ class Client(object):
     def getFolder(self, path):
         logger.info('Requesting folder from Remote:' + path)
         return self.server.getFolder(path)
+
+
+class Interface(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def getFolder(path):
+        logger.info('Serving remote Request: ' + path)
+        return WTFilesystem.Folder(path)
