@@ -3,6 +3,12 @@ Wolpertinger
 
 A Pure Python file syncing tool
 
+Warning
+----------
+The Software is by no meens fit for Producion use.<br>
+This software can be exploited to run Arbitrary Code!
+
+
 License
 -------
 Copyright (C) 2012-2013  Konstantin Renner
