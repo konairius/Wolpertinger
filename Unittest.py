@@ -37,7 +37,7 @@ class TestWTFilesystem(unittest.TestCase):
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
 
-    def testFolder(self):
+    def oftestFolder(self):
         folder1 = WTFilesystem.Folder('/home/konsti/tmp')
         folder2 = WTFilesystem.Folder('/home/konsti/tmp2')
         #  self.assertTrue(folder1.matches(folder1), 'Folder dosn`t match itself...')
@@ -73,7 +73,7 @@ class TestWTPyroClient(unittest.TestCase):
         self.manager = WTPyro.Manager()
         self.manager.startServer()
         self.manager.exposeFolders()
-        #time.sleep(5)
+        time.sleep(10)
         self.client = WTPyro.Client()
 
     def testFindExports(self):
