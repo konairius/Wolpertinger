@@ -11,18 +11,31 @@ import os
 import shelve
 
 import WTConfig
+from Util.WTUri import Uri
 
 fileCounter = 0
 
 
-class File(object):
+class Item(object):
+    def getItem(self, uri):
+        if not self.uri.contains(uri):
+            raise TargetNotExposedError(uri)
+        
+        if self.uri == uri:
+            return self
+        
+        else:
+            return self.items[uri.getNextItem(self.uri)].getItem(uri)
+
+
+class File(Item):
     '''
     Represents a File in wolpertinger,
     don't use the constructor, use the fromPath method
     it will Cache the hashes
     '''
     @classmethod
-    def fromPath(cls, path):
+    def fromPath(cls, path, uri):
         global fileCounter
         config = WTConfig.getConfig()
         lib = shelve.open(config.getFileCache())
@@ -34,14 +47,15 @@ class File(object):
             logger.debug('Cache hit for Path: ' + path)
         except (FileChangedError, KeyError):
             logger.debug('Cache miss for Path:' + path)
-            lib[path] = cls(path)
+            lib[path] = cls(path, uri)
         fileCounter += 1
         return lib[path]
 
-    def __init__(self, path):
+    def __init__(self, path, uri):
         '''
         DONT'T USE: Use Factory instead!
         '''
+        self.uri = uri
         self.path = path
         self.hash = File.createHash(path)
         self.size = os.path.getsize(path)
@@ -61,7 +75,7 @@ class File(object):
             pass
         else:
             logger.warning('Conflict Found:')
-            logger.warning(self.path + ' exists on both ends!')
+            logger.warning(self.uri.string + ' exists on both ends!')
         return syncList
 
     def getPath(self):
@@ -75,6 +89,9 @@ class File(object):
 
     def getHash(self):
         return self.hash
+    
+    def getUri(self):
+        return self.uri
 
     @staticmethod
     def createHash(path):
@@ -86,27 +103,25 @@ class File(object):
         return str(sha1.hexdigest())
 
 
-class Folder(object):
+class Folder(Item):
     '''
     Represents an entire folder,
     will crate File objects for the entire subtree,
     use it with caution.
     '''
-    @classmethod
-    def fromPath(cls, path):
-        return cls(path)
 
-    def __init__(self, path):
+    def __init__(self, path, uri):
         self.config = WTConfig.getConfig()
         #if path not in self.config.getExposedFolders().values():
         #    raise TargetNotExposedError(path)
         self.items = dict()
         self.path = path
+        self.uri = uri
         for item in os.listdir(path):
             if os.path.isdir(os.path.join(path, item)):
-                self.items[item] = Folder(os.path.join(path, item))
+                self.items[item] = Folder(os.path.join(path, item), self.uri.append(item))
             elif os.path.isfile(os.path.join(path, item)):
-                self.items[item] = File.fromPath(os.path.join(path, item))
+                self.items[item] = File.fromPath(os.path.join(path, item), self.uri.append(item))
 
     def matches(self, folder):
         '''
@@ -126,9 +141,9 @@ class Folder(object):
             try:
                 syncList += self.items[key].sync(folder.getItems()[key])
             except KeyError:
-                localPath = self.items[key].getPath()
-                remotePath = os.path.join(folder.getPath(), (os.path.relpath(self.items[key].getPath(), self.path)))
-                syncList.append((localPath, remotePath))
+                #localPath = self.items[key].getPath()
+                #remotePath = os.path.join(folder.getPath(), (os.path.relpath(self.items[key].getPath(), self.path)))
+                syncList.append((self.items[key].getUri().string, folder.getUri().string))
         if twoWay:
             syncList += folder.sync(self, False)
 
@@ -139,6 +154,29 @@ class Folder(object):
 
     def getPath(self):
         return self.path
+
+    def getUri(self):
+        return self.uri
+
+
+class Export(object):
+    '''
+    Represents an Export root
+    '''
+    def __init__(self, path, name):
+        self.rootUri = Uri('WT://' + name + '/')
+        self.path = path
+        self.name = name
+
+    def refresh(self):
+        logger.info('Updating cache for: ' + self.path)
+        self.rootItem = Folder(self.path, self.rootUri)
+
+    def getItem(self, uri):
+        return self.rootItem.getItem(uri)
+
+    def getRootUri(self):
+        return self.rootUri
 
 
 class FileChangedError(Exception):

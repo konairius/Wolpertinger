@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 #from multiprocessing import Process
 from threading import Thread
 import select
-import time
 
 import Pyro4
 
@@ -23,7 +22,7 @@ class Manager(object):
         self.config = WTConfig.getConfig()
 
     def startServer(self):
-        self.server = Server(self.config.getPublicAddress())
+        self.server = Server(self.config.getPublicAddress(), self.config.getSharedKey())
         self.server.enshureNameserver()
         #self.server.registerService(Interface, self.config.getServicename())
 
@@ -72,7 +71,7 @@ class Server(object):
             self.nameserverThread.start()
             self.isNameserver = True
             #time.sleep(5)
-            return self.enshureNameserver(recuresionDepth+1)
+            return self.enshureNameserver(recuresionDepth=recuresionDepth+1)
 
     @staticmethod
     def startNameserver(hostname):
@@ -107,28 +106,29 @@ class Server(object):
         else:
             raise Pyro4.errors.NamingError()
 
-    def registerFolder(self, folderName, path):
+    def registerFolder(self, servicename, path):
         if path not in self.config.getExposedFolders().values():
             raise WTFilesystem.TargetNotExposedError()
-        return self.registerService(Interface(path), 'export.' + folderName + '.' + self.config.getServicename())
+        return self.registerService(Interface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
 
 
 class Interface(object):
     '''
     The interface that will be exposed via Pyro
     '''
-    def __init__(self, path):
-        self.path = path
-        logger.info('Creating remote interface for: ' + self.path)
+    def __init__(self, path, servicename):
+
+        self.export = WTFilesystem.Export(path, servicename)
+        logger.info('Creating remote interface for: ' + path)
         self.refresh()
 
     def refresh(self):
-        logger.info('Updating cache for: ' + self.path)
-        self.folder = WTFilesystem.Folder(self.path)
+        self.export.refresh()
 
-    def getFolder(self):
-        logger.info('Serving remote request for: ' + self.path)
-        return self.folder
+    def getFolder(self, uri=None):
+        if None == uri:
+            uri = self.export.getRootUri()
+        return self.export.getItem(uri)
 
 
 class Client(object):
