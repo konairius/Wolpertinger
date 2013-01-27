@@ -98,8 +98,8 @@ class Folder(object):
 
     def __init__(self, path):
         self.config = WTConfig.getConfig()
-        if path not in self.config.getExposedFolders().values():
-            raise TargetNotExposedError(path)
+        #if path not in self.config.getExposedFolders().values():
+        #    raise TargetNotExposedError(path)
         self.items = dict()
         self.path = path
         for item in os.listdir(path):
