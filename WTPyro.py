@@ -59,7 +59,9 @@ class Server(object):
         if self.isNameserver:
             del(self.nameserverThread)
 
-    def enshureNameserver(self):
+    def enshureNameserver(self, recuresionDepth=0):
+        if recuresionDepth >= 10:
+            raise Pyro4.errors.NamingError
         try:
             logger.debug('Trying to locate Nameserver')
             self.nameserver = Pyro4.naming.locateNS()
@@ -72,7 +74,7 @@ class Server(object):
             self.nameserverThread.start()
             self.isNameserver = True
             #time.sleep(5)
-            return self.enshureNameserver()
+            return self.enshureNameserver(recuresionDepth+1)
 
     @staticmethod
     def startNameserver(hostname):
