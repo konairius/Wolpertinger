@@ -53,9 +53,7 @@ class Server(object):
 
     def close(self):
         logger.info('Closing server on ' + self.address)
-        for uri, thread in self.services:
-            #self.nameserver.unregister(uri)
-            pass
+        self.nameserver.remove(regex='.*\.' + self.config.getServicename())
         if self.isNameserver:
             del(self.nameserverThread)
 
@@ -146,7 +144,7 @@ class Client(object):
         exports = self.nameserver.list(prefix='export')
         for key in exports.keys():
             self.knownExports[key] = Pyro4.Proxy('PYRONAME:' + key)
-        return self.knownExports.keys()
+        return list(self.knownExports.keys())
 
     def getFolder(self, export):
         logger.info('Requesting folder from Remote:' + export)
