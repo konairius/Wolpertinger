@@ -54,7 +54,15 @@ class TestWTPyroManager(unittest.TestCase):
     def testManager(self):
         manager = WTPyro.Manager()
         manager.startServer()
-        time.sleep(5)
+        #time.sleep(5)
+        manager.stopServer()
+
+    def testExposeFolders(self):
+        manager = WTPyro.Manager()
+        manager.startServer()
+        #time.sleep(5)
+        manager.exposeFolders()
+        #time.sleep(5)
         manager.stopServer()
 
 
@@ -64,15 +72,19 @@ class TestWTPyroClient(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.manager = WTPyro.Manager()
         self.manager.startServer()
-        time.sleep(5)
+        self.manager.exposeFolders()
+        #time.sleep(5)
+        self.client = WTPyro.Client()
 
-    def testClient(self):
-        folder1 = WTFilesystem.Folder('/home/konsti/tmp')
-        client = WTPyro.Client('WTTest')
-        folder2 = client.getFolder('/home/konsti/tmp2')
-        syncList = folder1.sync(folder2, True)
-        for syncItem in syncList:
-            logger.debug(syncItem[0] + ' -> ' + syncItem[1])
+    def testFindExports(self):
+        exports = self.client.findExports()
+        for export in exports:
+            logger.debug('Found export: ' + export)
+
+    def testGetFolder(self):
+        folders = dict()
+        for export in self.client.findExports():
+            folders[export] = self.client.getFolder(export)
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
