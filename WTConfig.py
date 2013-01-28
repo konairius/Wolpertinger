@@ -49,3 +49,6 @@ class Config(object):
             if not share in ['Global', 'DEFAULT']:
                 folders[share] = self.config[share]['path']
         return folders
+
+    def getTransportDir(self):
+        return self.config['Global']['TransportDir']

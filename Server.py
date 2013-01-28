@@ -14,6 +14,6 @@ if __name__ == '__main__':
     m.startServer()
     m.exposeFolders()
     while True:
-        if 'yes' == input('Shutdown'):
+        if 'yes' == input(''):
             m.stopServer()
             break

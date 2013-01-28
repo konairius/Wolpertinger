@@ -10,9 +10,8 @@ logging.basicConfig(level=logging.DEBUG, filename='/home/konsti/tmp/WTBase.log',
 
 logger = logging.getLogger(__name__)
 
-import time
 import unittest
-from multiprocessing import Process
+
 
 import WTFilesystem
 import WTPyro

@@ -14,6 +14,8 @@ import Pyro4
 
 import WTFilesystem
 import WTConfig
+import WTCopyTransport
+from Util import WTUri
 
 
 class Manager(object):
@@ -24,7 +26,6 @@ class Manager(object):
     def startServer(self):
         self.server = Server(self.config.getPublicAddress(), self.config.getSharedKey())
         self.server.enshureNameserver()
-        #self.server.registerService(Interface, self.config.getServicename())
 
     def stopServer(self):
         self.server.close()
@@ -49,16 +50,20 @@ class Server(object):
         self.isNameserver = False
         self.address = address
         self.services = []
+        self.enshureNameserver()
+        self.registerService(ManagementInterface(), 'manager.' + self.config.getServicename())
+        logger.info('Server ready!')
 
     def close(self):
         logger.info('Closing server on ' + self.address)
         self.nameserver.remove(regex='.*\.' + self.config.getServicename())
+        self.nameserver.remove('manager.' + self.config.getServicename())
         if self.isNameserver:
             del(self.nameserverThread)
 
     def enshureNameserver(self, recuresionDepth=0):
         if recuresionDepth >= 10:
-            raise Pyro4.errors.NamingError
+            raise Pyro4.errors.NamingError()
         try:
             logger.debug('Trying to locate Nameserver')
             self.nameserver = Pyro4.naming.locateNS()
@@ -71,12 +76,13 @@ class Server(object):
             self.nameserverThread.start()
             self.isNameserver = True
             #time.sleep(5)
-            return self.enshureNameserver(recuresionDepth=recuresionDepth+1)
+            return self.enshureNameserver(recuresionDepth=recuresionDepth + 1)
 
     @staticmethod
     def startNameserver(hostname):
         logger.info('Starting local Nameserver on ' + hostname)
         nameserverUri, nameserverDaemon, broadcastServer = Pyro4.naming.startNS(hostname)
+        logger.debug('Nameserver running on ' + str(nameserverUri))
         while True:
             nameserverSockets = set(nameserverDaemon.sockets)
             rs = [broadcastServer]  # only the broadcast server is directly usable as a select() object
@@ -85,12 +91,12 @@ class Server(object):
             eventsForNameserver = []
             for s in rs:
                 if s is broadcastServer:
-                    logger.debug('Broadcast server received a request')
+                    #logger.debug('Broadcast server received a request')
                     broadcastServer.processRequest()
                 elif s in nameserverSockets:
                     eventsForNameserver.append(s)
             if eventsForNameserver:
-                logger.debug('Nameserver received a request')
+                #logger.debug('Nameserver received a request')
                 nameserverDaemon.events(eventsForNameserver)
 
     def registerService(self, service, servicename):
@@ -109,16 +115,16 @@ class Server(object):
     def registerFolder(self, servicename, path):
         if path not in self.config.getExposedFolders().values():
             raise WTFilesystem.TargetNotExposedError()
-        return self.registerService(Interface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
+        return self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
 
 
-class Interface(object):
+class FolderInterface(object):
     '''
     The interface that will be exposed via Pyro
     '''
-    def __init__(self, path, servicename):
+    def __init__(self, path, exportname):
 
-        self.export = WTFilesystem.Export(path, servicename)
+        self.export = WTFilesystem.Export(path, exportname)
         logger.info('Creating remote interface for: ' + path)
         self.refresh()
 
@@ -131,23 +137,41 @@ class Interface(object):
         return self.export.getItem(uri)
 
 
+class ManagementInterface(object):
+    '''
+    Interface controling the Server
+    '''
+    def __init__(self):
+        self.config = WTConfig.getConfig()
+        self.copyAgent = WTCopyTransport.TransportAgent(self.config.getTransportDir())
+
+    def sync(self, source, target):
+        if not source.__class__ == WTUri.Uri:
+            source = WTUri.Uri(source)
+        if not target.__class__ == WTUri.Uri:
+            target = WTUri.Uri(target)
+        self.copyAgent.sync(source, target, True)
+
+
 class Client(object):
 
     def __init__(self):
         self.config = WTConfig.getConfig()
         Pyro4.config.HMAC_KEY = self.config.getSharedKey()
         self.nameserver = Pyro4.naming.locateNS()
+        self.knownExports = dict()
 
     def findExports(self):
         logger.debug('Updating known Exports')
-        self.knownExports = dict()
         exports = self.nameserver.list(prefix='export')
         for key in exports.keys():
             self.knownExports[key] = Pyro4.Proxy('PYRONAME:' + key)
         return list(self.knownExports.keys())
 
     def getFolder(self, uri):
-        logger.info('Requesting Item from Remote:' + uri.string)
+        if not uri.__class__ == WTUri.Uri:
+            uri = WTUri.Uri(uri)
+        logger.info('Requesting Item from Remote:' + str(uri))
         if uri.getExportIdentifier() not in self.knownExports.keys():
             self.findExports()
         try:
