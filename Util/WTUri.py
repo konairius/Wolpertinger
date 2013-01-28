@@ -13,6 +13,9 @@ class Uri(object):
     '''
     classdocs
     '''
+    @classmethod
+    def fromExportIdentifier(cls, export):
+        return cls('WT://' + export + '/')
 
     def __init__(self, string):
         '''
@@ -48,6 +51,12 @@ class Uri(object):
     def getNextItem(self, uri):
         result = self.getPath().lstrip(uri.getPath()).split('/')[0]
         return result
+
+    def __eq__(self, *args, **kwargs):
+        try:
+            return self.string == args[0].string
+        except AttributeError:
+            return False
 
 
 class InvalidURIError(Exception):

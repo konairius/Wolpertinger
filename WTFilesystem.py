@@ -18,12 +18,12 @@ fileCounter = 0
 
 class Item(object):
     def getItem(self, uri):
-        if not self.uri.contains(uri):
-            raise TargetNotExposedError(uri)
-        
         if self.uri == uri:
             return self
-        
+
+        if not self.uri.contains(uri):
+            raise TargetNotExposedError(uri)
+
         else:
             return self.items[uri.getNextItem(self.uri)].getItem(uri)
 
@@ -89,7 +89,7 @@ class File(Item):
 
     def getHash(self):
         return self.hash
-    
+
     def getUri(self):
         return self.uri
 
@@ -164,7 +164,8 @@ class Export(object):
     Represents an Export root
     '''
     def __init__(self, path, name):
-        self.rootUri = Uri('WT://' + name + '/')
+        self.config = WTConfig.getConfig()
+        self.rootUri = Uri('WT://export.' + name + '.' + self.config.getServicename() + '/')
         self.path = path
         self.name = name
 

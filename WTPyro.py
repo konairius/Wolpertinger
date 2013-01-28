@@ -146,12 +146,12 @@ class Client(object):
             self.knownExports[key] = Pyro4.Proxy('PYRONAME:' + key)
         return list(self.knownExports.keys())
 
-    def getFolder(self, export):
-        logger.info('Requesting folder from Remote:' + export)
-        if export not in self.knownExports.keys():
+    def getFolder(self, uri):
+        logger.info('Requesting Item from Remote:' + uri.string)
+        if uri.getExportIdentifier() not in self.knownExports.keys():
             self.findExports()
         try:
-            return self.knownExports[export].getFolder()
+            return self.knownExports[uri.getExportIdentifier()].getFolder(uri)
         except KeyError as e:
             raise ExportNotFoundError(e)
 

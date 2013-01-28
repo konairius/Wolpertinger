@@ -85,7 +85,7 @@ class TestWTPyroClient(unittest.TestCase):
     def testGetFolder(self):
         folders = dict()
         for export in self.client.findExports():
-            folders[export] = self.client.getFolder(export)
+            folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
