@@ -3,6 +3,7 @@ OverwriteOlder = Yes
 Servicename = ExamleName
 Address = public addres or ip
 Cachepath = /tmp/WTCache
+TransportDir = /path/to/external/harddrive
 
 [Example]
 path = /path/to/folder
