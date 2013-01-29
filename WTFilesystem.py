@@ -118,10 +118,13 @@ class Folder(Item):
         self.path = path
         self.uri = uri
         for item in os.listdir(path):
-            if os.path.isdir(os.path.join(path, item)):
-                self.items[item] = Folder(os.path.join(path, item), self.uri.append(item))
-            elif os.path.isfile(os.path.join(path, item)):
-                self.items[item] = File.fromPath(os.path.join(path, item), self.uri.append(item))
+            try:
+                if os.path.isdir(os.path.join(path, item)):
+                    self.items[item] = Folder(os.path.join(path, item), self.uri.append(item))
+                elif os.path.isfile(os.path.join(path, item)):
+                    self.items[item] = File.fromPath(os.path.join(path, item), self.uri.append(item))
+            except Exception as e:
+                logger.error(e)
 
     def matches(self, folder):
         '''
