@@ -115,7 +115,8 @@ class Server(object):
     def registerFolder(self, servicename, path):
         if path not in self.config.getExposedFolders().values():
             raise WTFilesystem.TargetNotExposedError()
-        return self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
+        self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
+        return
 
 
 class FolderInterface(object):
@@ -124,9 +125,9 @@ class FolderInterface(object):
     '''
     def __init__(self, path, exportname):
 
-        self.export = WTFilesystem.Export(path, exportname)
         logger.info('Creating remote interface for: ' + path)
-        self.refresh()
+        self.export = WTFilesystem.Export(path, exportname)
+        logger.info('Remote Interface for: ' + path + ' will be exposed on ' + str(self.export.getRootUri()))
 
     def refresh(self):
         self.export.refresh()

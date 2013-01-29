@@ -171,6 +171,7 @@ class Export(object):
         self.rootUri = Uri('WT://export.' + name + '.' + self.config.getServicename() + '/')
         self.path = path
         self.name = name
+        self.refresh()
 
     def refresh(self):
         logger.info('Updating cache for: ' + self.path)
