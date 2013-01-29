@@ -124,7 +124,7 @@ class Folder(Item):
                 elif os.path.isfile(os.path.join(path, item)):
                     self.items[item] = File.fromPath(os.path.join(path, item), self.uri.append(item))
             except Exception as e:
-                logger.error(e)
+                logger.error(uri + ': ' + e)
 
     def matches(self, folder):
         '''
