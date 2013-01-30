@@ -21,6 +21,7 @@ from Util import WTUri
 class Manager(object):
 
     def __init__(self):
+        self.exportTreads = dict()
         self.config = WTConfig.getConfig()
 
     def startServer(self):
@@ -32,7 +33,8 @@ class Manager(object):
 
     def exposeFolders(self):
         for key in self.config.getExposedFolders().keys():
-            Thread(target=self.server.registerFolder(key, self.config.getExposedFolders()[key])).start()
+            self.exportTreads[key] = Thread(target=self.server.registerFolder, args=(key, self.config.getExposedFolders()[key]))
+            self.exportTreads[key].start()
 
 
 class Server(object):
