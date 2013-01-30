@@ -20,6 +20,8 @@ def main():
 
     shutdown = False
 
+    FORMAT = "%(asctime)s | %(levelname)s | %(name)s: %(message)s"
+
     parser = argparse.ArgumentParser(prog='Wolpertinger',
                                      description='Start a wolpertinger server.')
     parser.add_argument('--loglevel', dest='loglevel', default='INFO',
@@ -42,6 +44,7 @@ def main():
 
     if not args.logfile == 'stdout':
         logging.basicConfig(filename=args.logfile)
+        logging.basicConfig(format=FORMAT)
 
     WTConfig.Config(args.configfile)
 

@@ -34,6 +34,8 @@ class Manager(object):
     def exposeFolders(self):
         for key in self.config.getExposedFolders().keys():
             self.exportTreads[key] = Thread(target=self.server.registerFolder, args=(key, self.config.getExposedFolders()[key]))
+            self.exportTreads[key].deamon = True
+            self.exportTreads[key].name = 'export: ' + key
             self.exportTreads[key].start()
 
 
