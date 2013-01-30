@@ -32,7 +32,7 @@ class Manager(object):
 
     def exposeFolders(self):
         for key in self.config.getExposedFolders().keys():
-            self.server.registerFolder(key, self.config.getExposedFolders()[key])
+            Thread(target=self.server.registerFolder(key, self.config.getExposedFolders()[key])).start()
 
 
 class Server(object):

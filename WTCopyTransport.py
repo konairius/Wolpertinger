@@ -12,6 +12,7 @@ import WTPyro
 
 from queue import Queue
 from os import path
+import os
 import shutil
 from threading import Thread
 
@@ -57,9 +58,14 @@ class TransportAgent(object):
             realSource = self.client.getFolder(virtualSource).getPath()
             realTarget = self.client.getFolder(virtualTarget).getPath()
             transportPath = path.join(self.transportDir, path.relpath(realTarget, self.targetRoot.getPath()))
-            logger.debug(realSource + ' => ' + transportPath)
 
-            shutil.copy(realSource, transportPath)
+            if path.isdir(realSource):
+                transportPath = path.join(transportPath, path.basename(realSource))
+                logger.debug(realSource + ' => ' + transportPath)
+                shutil.copytree(realSource, transportPath)
+            elif path.isfile(realSource):
+                logger.debug(realSource + ' => ' + transportPath)
+                shutil.copy(realSource, transportPath)
 
             self.copyQueue.task_done()
 
