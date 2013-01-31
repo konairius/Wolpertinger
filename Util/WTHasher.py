@@ -66,7 +66,7 @@ class Hasher(object):
             try:
                 file = self.createHash(file)
             except IOError as e:
-                logger.error(file.path + ': ' + e)
+                logger.error(file.path + ': ' + str(e))
             cache = shelve.open(self.config.getFileCache())
             cache[file.path] = file
             cache.close()
