@@ -52,7 +52,7 @@ class Hasher(object):
                 return cachedFile
             else:
                 raise FileChangedError()
-        except (KeyError, FileChangedError) as e:
+        except (KeyError, FileChangedError):
             cache.close()
             if False == sync:
                 self.toHash.put(file)
@@ -63,7 +63,10 @@ class Hasher(object):
     def createHashWorker(self):
         while True:
             file = self.toHash.get(block=True)
-            file = self.createHash(file)
+            try:
+                file = self.createHash(file)
+            except IOError as e:
+                logger.error(file.path + ': ' + e)
             cache = shelve.open(self.config.getFileCache())
             cache[file.path] = file
             cache.close()
