@@ -4,7 +4,6 @@ Created on Jan 24, 2013
 '''
 
 import logging
-from Crypto.SelfTest import SelfTestError
 logger = logging.getLogger(__name__)
 
 import configparser

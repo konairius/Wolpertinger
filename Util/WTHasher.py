@@ -11,6 +11,7 @@ import shelve
 import hashlib
 from threading import Thread
 from queue import Queue
+import time
 
 
 from WTConfig import Config
@@ -67,7 +68,9 @@ class Hasher(object):
             try:
                 file = self.createHash(file)
             except IOError as e:
+                self.toHash.put(file)
                 logger.error(file.path + ': ' + str(e))
+                time.sleep(10)
             cache = shelve.open(self.config.getFileCache())
             cache[file.path] = file
             cache.close()
