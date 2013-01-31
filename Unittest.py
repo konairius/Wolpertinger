@@ -32,17 +32,17 @@ class TestWTConfig(unittest.TestCase):
 class TestWTFilesystem(unittest.TestCase):
 
     def testFile(self):
-        file1 = WTFilesystem.File.fromPath('/home/konsti/tmp/WTBase.log', Uri('WT://Testexport1.Testservice/'))
-        file2 = WTFilesystem.File.fromPath('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
+        file1 = WTFilesystem.File('/home/konsti/tmp/WTBase.log', Uri('WT://Testexport1.Testservice/'))
+        file2 = WTFilesystem.File('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
 
     def testFolder(self):
-        folder1 = WTFilesystem.Folder('/home/konsti/tmp', Uri('WT://Testexport1.Testservice/'))
-        folder2 = WTFilesystem.Folder('/home/konsti/tmp2', Uri('WT://Testexport2.Testservice/'))
+        folder1 = WTFilesystem.Folder('/home/konsti/Pictures', Uri('WT://Testexport1.Testservice/'))
+        folder2 = WTFilesystem.Folder('/home/konsti/Videos', Uri('WT://Testexport2.Testservice/'))
         #  self.assertTrue(folder1.matches(folder1), 'Folder dosn`t match itself...')
         #  self.assertFalse(folder1.matches(folder2), 'These Folders should not Match')
-        syncList = folder1.sync(folder2, True)
+        syncList = folder1.sync(folder2)
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
 
@@ -68,7 +68,7 @@ class TestWTPyroManager(unittest.TestCase):
 
 class TestWTPyroClient(unittest.TestCase):
 
-    def setUp(self):
+    def dsetUp(self):
         unittest.TestCase.setUp(self)
         self.manager = WTPyro.Manager()
         self.manager.startServer()
@@ -76,17 +76,17 @@ class TestWTPyroClient(unittest.TestCase):
         #time.sleep(10)
         self.client = WTPyro.Client()
 
-    def testFindExports(self):
+    def dtestFindExports(self):
         exports = self.client.findExports()
         for export in exports:
             logger.debug('Found export: ' + export)
 
-    def testGetFolder(self):
+    def dtestGetFolder(self):
         folders = dict()
         for export in self.client.findExports():
             folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
 
-    def tearDown(self):
+    def dtearDown(self):
         unittest.TestCase.tearDown(self)
         self.manager.stopServer()
 

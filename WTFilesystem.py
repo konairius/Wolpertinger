@@ -6,12 +6,12 @@ Created on Jan 24, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-import hashlib
 import os
-import shelve
+from os import listdir
 
-import WTConfig
+from WTConfig import getConfig
 from Util.WTUri import Uri
+from Util.WTHasher import getHasher
 
 fileCounter = 0
 
@@ -19,7 +19,10 @@ fileCounter = 0
 class Item(object):
     def getItem(self, uri):
         if self.uri == uri:
-            return self
+            if self.hasHash():
+                return self
+            else:
+                return self.__class__(self.path, self.uri, sync=True)
 
         if not self.uri.contains(uri):
             raise TargetNotExposedError(uri)
@@ -34,39 +37,26 @@ class File(Item):
     don't use the constructor, use the fromPath method
     it will Cache the hashes
     '''
-    @classmethod
-    def fromPath(cls, path, uri):
-        global fileCounter
-        config = WTConfig.getConfig()
-        lib = shelve.open(config.getFileCache())
-        size = os.path.getsize(path)
-        mtime = os.path.getmtime(path)
-        try:
-            if not lib[path].size == size and lib[path].mtime == mtime:
-                raise FileChangedError
-            logger.debug('Cache hit for Path: ' + path)
-        except (FileChangedError, KeyError):
-            logger.debug('Cache miss for Path:' + path)
-            lib[path] = cls(path, uri)
-        fileCounter += 1
-        return lib[path]
 
-    def __init__(self, path, uri):
+    def __init__(self, path, uri, sync=True):
         '''
         DONT'T USE: Use Factory instead!
         '''
         self.uri = uri
         self.path = path
-        self.hash = File.createHash(path)
         self.size = os.path.getsize(path)
         self.mtime = os.path.getmtime(path)
+        try:
+            self.hash = getHasher().hashFile(self, sync).hash
+        except AttributeError:
+            pass
 
     def matches(self, file):
         try:
-            if self.hash == file.getHash():
+            if self.hash == file.hash:
                 return True
             return False
-        except (KeyError, AttributeError):
+        except AttributeError:
             return False
 
     def sync(self, file):
@@ -74,33 +64,15 @@ class File(Item):
         if self.matches(file):
             pass
         else:
-            logger.warning('Conflict Found:')
-            logger.warning(self.uri.string + ' exists on both ends!')
+            logger.warning(self.uri.string + ' exists on both ends but dosn\'t Match')
         return syncList
 
-    def getPath(self):
-        return self.path
-
-    def getMtime(self):
-        return self.mtime
-
-    def getSize(self):
-        return self.size
-
-    def getHash(self):
-        return self.hash
-
-    def getUri(self):
-        return self.uri
-
-    @staticmethod
-    def createHash(path):
-        logger.debug('Creating new hash for ' + path)
-        sha1 = hashlib.sha1()
-        with open(path, 'rb') as data:
-            for chunk in iter(lambda: data.read(128 * sha1.block_size), b''):
-                sha1.update(chunk)
-        return str(sha1.hexdigest())
+    def hasHash(self):
+        try:
+            self.hash
+            return True
+        except AttributeError:
+            return False
 
 
 class Folder(Item):
@@ -110,19 +82,19 @@ class Folder(Item):
     use it with caution.
     '''
 
-    def __init__(self, path, uri):
-        self.config = WTConfig.getConfig()
+    def __init__(self, path, uri, sync=True):
+        self.config = getConfig()
         #if path not in self.config.getExposedFolders().values():
         #    raise TargetNotExposedError(path)
         self.items = dict()
         self.path = path
         self.uri = uri
-        for item in os.listdir(path):
+        for item in listdir(path):
             try:
                 if os.path.isdir(os.path.join(path, item)):
-                    self.items[item] = Folder(os.path.join(path, item), self.uri.append(item))
+                    self.items[item] = Folder(os.path.join(path, item), self.uri.append(item), sync)
                 elif os.path.isfile(os.path.join(path, item)):
-                    self.items[item] = File.fromPath(os.path.join(path, item), self.uri.append(item))
+                    self.items[item] = File(os.path.join(path, item), self.uri.append(item), sync)
             except Exception as e:
                 logger.error(str(uri.append(item)) + ': ' + str(e))
 
@@ -132,34 +104,29 @@ class Folder(Item):
         '''
         try:
             for key in self.items.keys():
-                if not self.items[key].matches(folder.getItems()[key]):
+                if not self.items[key].matches(folder.items[key]):
                     return False
                 return True
         except (KeyError, AttributeError):
             return False
 
-    def sync(self, folder, twoWay=False):
+    def sync(self, folder):
         syncList = []
         for key in self.items.keys():
             try:
-                syncList += self.items[key].sync(folder.getItems()[key])
+                syncList += self.items[key].sync(folder.items[key])
             except KeyError:
                 #localPath = self.items[key].getPath()
                 #remotePath = os.path.join(folder.getPath(), (os.path.relpath(self.items[key].getPath(), self.path)))
-                syncList.append((self.items[key].getUri().string, folder.getUri().string))
-        if twoWay:
-            syncList += folder.sync(self, False)
+                syncList.append((str(self.items[key].uri), str(folder.uri)))
 
         return syncList
 
-    def getItems(self):
-        return self.items
-
-    def getPath(self):
-        return self.path
-
-    def getUri(self):
-        return self.uri
+    def hasHash(self):
+        for key in self.items.keys():
+            if not self.items[key].hasHash():
+                return False
+            return True
 
 
 class Export(object):
@@ -167,25 +134,21 @@ class Export(object):
     Represents an Export root
     '''
     def __init__(self, path, name):
-        self.config = WTConfig.getConfig()
+        self.config = getConfig()
         self.rootUri = Uri('WT://export.' + name + '.' + self.config.getServicename() + '/')
         self.path = path
         self.name = name
-        self.refresh()
+        self.refresh(sync=False)
 
-    def refresh(self):
-        logger.info('Updating cache for: ' + self.path)
-        self.rootItem = Folder(self.path, self.rootUri)
+    def refresh(self, sync=True):
+        logger.info('Checking cache for: ' + self.path)
+        self.rootItem = Folder(self.path, self.rootUri, sync)
 
     def getItem(self, uri):
         return self.rootItem.getItem(uri)
 
     def getRootUri(self):
         return self.rootUri
-
-
-class FileChangedError(Exception):
-    pass
 
 
 class TargetNotExposedError(Exception):

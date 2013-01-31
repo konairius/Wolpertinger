@@ -52,6 +52,8 @@ def main():
     m.startServer()
     m.exposeFolders()
     while False == shutdown:
+        if 'quit' == input('#:'):
+            break
         time.sleep(10)
     m.stopServer()
 
