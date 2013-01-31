@@ -37,10 +37,11 @@ class Hasher(object):
         global hasher
         self.toHash = Queue()
         self.config = Config()
-        self.hashWorker = Thread(target=self.createHashWorker)
-        self.hashWorker.daemon = True
-        self.hashWorker.name = 'Hash Worker'
-        self.hashWorker.start()
+        for i in range(self.config.getWorkerThreads()):
+            self.hashWorker = Thread(target=self.createHashWorker)
+            self.hashWorker.daemon = True
+            self.hashWorker.name = 'Hash Worker #' + str(i)
+            self.hashWorker.start()
         hasher = self
 
     def hashFile(self, file, sync=False):

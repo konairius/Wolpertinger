@@ -4,6 +4,7 @@ Created on Jan 24, 2013
 '''
 
 import logging
+from Crypto.SelfTest import SelfTestError
 logger = logging.getLogger(__name__)
 
 import configparser
@@ -52,3 +53,9 @@ class Config(object):
 
     def getTransportDir(self):
         return self.config['Global']['TransportDir']
+
+    def getWorkerThreads(self):
+        try:
+            return int(self.config['Global']['WorkerThreads'])
+        except KeyError:
+            return 1

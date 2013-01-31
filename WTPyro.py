@@ -26,7 +26,6 @@ class Manager(object):
 
     def startServer(self):
         self.server = Server(self.config.getPublicAddress(), self.config.getSharedKey())
-        self.server.enshureNameserver()
 
     def stopServer(self):
         self.server.close()
@@ -71,6 +70,7 @@ class Server(object):
         try:
             logger.debug('Trying to locate Nameserver')
             self.nameserver = Pyro4.naming.locateNS()
+            logger.debug('Found Nameserver on ' + str(self.nameserver._pyroUri))
             return True
         except Pyro4.errors.NamingError:
             logger.debug('Failed, starting my own one')

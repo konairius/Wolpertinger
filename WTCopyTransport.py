@@ -32,6 +32,7 @@ class TransportAgent(object):
         self.threadPool = dict()
         for num in range(workerThreads):
             self.threadPool[num] = Thread(target=self.worker)
+            self.threadPool[num].daemon = True
             self.threadPool[num].start()
 
         logger.info('Transport Agent Running')
@@ -51,7 +52,7 @@ class TransportAgent(object):
 
     def worker(self):
         while True:
-            item = self.copyQueue.get()
+            item = self.copyQueue.get(block=True)
             virtualSource = item[0]
             virtualTarget = item[1]
 
