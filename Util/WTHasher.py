@@ -60,7 +60,11 @@ class Hasher(object):
                 self.toHash.put(file)
                 return file
             else:
-                return self.createHash(file)
+                file = self.createHash(file)
+                cache = shelve.open(self.config.getFileCache())
+                cache[file.path] = file
+                cache.close()
+                return file
 
     def createHashWorker(self):
         while True:
@@ -84,7 +88,6 @@ class Hasher(object):
             for chunk in iter(lambda: data.read(128 * sha1.block_size), b''):
                 sha1.update(chunk)
         file.hash = sha1.hexdigest()
-        file.hasHash = True
         return file
 
 
