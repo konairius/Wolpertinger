@@ -12,7 +12,6 @@ import WTPyro
 
 from queue import Queue
 from os import path
-import os
 import shutil
 from threading import Thread
 

@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 import os
 from os import listdir
+from abc import ABCMeta, abstractmethod
 
 from WTConfig import getConfig
 from Util.WTUri import Uri
@@ -16,7 +17,31 @@ from Util.WTHasher import getHasher
 fileCounter = 0
 
 
-class Item(object):
+class Item(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def size(self):
+        '''
+        Return the size of the underlying structure or file.
+        '''
+        pass
+
+    @property
+    @abstractmethod
+    def hasHash(self):
+        '''
+        Retrun if every element underlying structure has been Hased.
+        '''
+        pass
+
+    @abstractmethod
+    def sync(self, other):
+        '''
+        Returns a list of Files or Folders that need to be copied
+        the sync the underlying structure.
+        '''
+        pass
+
     def getItem(self, uri):
         if self.uri == uri:
             if self.hasHash():
