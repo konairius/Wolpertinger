@@ -28,9 +28,16 @@ class Item(metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def mtime(self):
+        '''
+        Returns the latest mtime of the underlying structure
+        '''
+
+    @property
+    @abstractmethod
     def hasHash(self):
         '''
-        Retrun if every element underlying structure has been Hased.
+        Return if every element underlying structure has been Hashed.
         '''
         pass
 
@@ -42,9 +49,15 @@ class Item(metaclass=ABCMeta):
         '''
         pass
 
+    @abstractmethod
+    def matches(self, other):
+        '''
+        Returns True if the Items seem to have the same content
+        '''
+
     def getItem(self, uri):
         if self.uri == uri:
-            if self.hasHash():
+            if self.hasHash:
                 return self
             else:
                 return self.__class__(self.path, self.uri, sync=True)
@@ -58,7 +71,7 @@ class Item(metaclass=ABCMeta):
 
 class File(Item):
     '''
-    Represents a File in wolpertinger,
+    Represents a File in Wolpertinger,
     don't use the constructor, use the fromPath method
     it will Cache the hashes
     '''
@@ -69,16 +82,19 @@ class File(Item):
         '''
         self.uri = uri
         self.path = path
-        self.size = os.path.getsize(path)
-        self.mtime = os.path.getmtime(path)
+        self._size = os.path.getsize(path)
+        self._mtime = os.path.getmtime(path)
         try:
             self.hash = getHasher().hashFile(self, sync).hash
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            if not sync:
+                pass
+            else:
+                raise AttributeError(e)
 
-    def matches(self, file):
+    def matches(self, other):
         try:
-            if self.hash == file.hash:
+            if self.hash == other.hash:
                 return True
             return False
         except AttributeError:
@@ -92,12 +108,21 @@ class File(Item):
             logger.warning(self.uri.string + ' exists on both ends but dosn\'t Match')
         return syncList
 
+    @property
     def hasHash(self):
         try:
             self.hash
             return True
         except AttributeError:
             return False
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def mtime(self):
+        return self._mtime
 
 
 class Folder(Item):
@@ -114,6 +139,7 @@ class Folder(Item):
         self.items = dict()
         self.path = path
         self.uri = uri
+        self._mtime = os.path.getmtime(path)
         for item in listdir(path):
             try:
                 if os.path.isdir(os.path.join(path, item)):
@@ -123,13 +149,13 @@ class Folder(Item):
             except Exception as e:
                 logger.error(str(uri.append(item)) + ': ' + str(e))
 
-    def matches(self, folder):
+    def matches(self, other):
         '''
         Quickly checks recursive if the Folders are matching.
         '''
         try:
             for key in self.items.keys():
-                if not self.items[key].matches(folder.items[key]):
+                if not self.items[key].matches(other.items[key]):
                     return False
                 return True
         except (KeyError, AttributeError):
@@ -147,11 +173,27 @@ class Folder(Item):
 
         return syncList
 
+    @property
     def hasHash(self):
         for key in self.items.keys():
-            if not self.items[key].hasHash():
+            if not self.items[key].hasHash:
                 return False
             return True
+
+    @property
+    def size(self):
+        size = 0
+        for key in self.items.keys():
+            size += self.items[key].size
+
+    @property
+    def mtime(self):
+        mtime = self._mtime
+        for key in self.items.keys():
+            kmtime = self.items[key].mtime
+            if kmtime > mtime:
+                mtime = kmtime
+        return mtime
 
 
 class Export(object):
