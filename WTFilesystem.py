@@ -10,9 +10,9 @@ import os
 from os import listdir
 from abc import ABCMeta, abstractmethod
 
-from WTConfig import getConfig
+from WTConfig import config
 from Util.WTUri import Uri
-from Util.WTHasher import getHasher
+from Util.WTHasher import hasher
 from Util.WTHasher import NotYetCreatedError
 
 
@@ -94,20 +94,20 @@ class File(Item):
     '''
 
     def __init__(self, path, uri, sync=True):
-        '''
-        DONT'T USE: Use Factory instead!
-        '''
         self._uri = uri
         self._path = path
         self._size = os.path.getsize(path)
         self._mtime = os.path.getmtime(path)
         try:
-            self._hash = getHasher().hashFile(self, sync).hash
+            self._hash = hasher().hashFile(self, sync).hash
         except NotYetCreatedError as e:
             if not sync:
                 pass
             else:
                 raise AttributeError(e)
+
+    def __repr__(self):
+        return self.path
 
     @property
     def path(self):
@@ -187,7 +187,6 @@ class Folder(Item):
     '''
 
     def __init__(self, path, uri, sync=True):
-        self.config = getConfig()
         self._items = dict()
         self._path = path
         self._uri = uri
@@ -200,6 +199,9 @@ class Folder(Item):
                     self.items[item] = File(os.path.join(path, item), self.uri.append(item), sync)
             except Exception as e:
                 logger.error(str(uri.append(item)) + ': ' + str(e))
+
+    def __repr__(self):
+        return self.path()
 
     @property
     def path(self):
@@ -284,8 +286,7 @@ class Export(object):
     Represents an Export root
     '''
     def __init__(self, path, name):
-        self.config = getConfig()
-        self.rootUri = Uri('WT://export.' + name + '.' + self.config.getServicename() + '/')
+        self.rootUri = Uri('WT://export.' + name + '.' + config().servicename + '/')
         self.path = path
         self.name = name
         self.refresh(sync=False)

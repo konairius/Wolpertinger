@@ -7,8 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from os import path
-
-import WTConfig
+from WTConfig import config
 
 
 class Uri(object):
@@ -24,7 +23,6 @@ class Uri(object):
         Format:
         WT://EXPORT.SERVICE/path/to/resource
         '''
-        self.config = WTConfig.getConfig()
         if not string.startswith('WT://'):
             raise InvalidURIError(string)
         self.string = string
@@ -62,7 +60,7 @@ class Uri(object):
             return False
 
     def isLocal(self):
-        return self.getExportIdentifier().split('.')[-1] == self.config.getServicename()
+        return self.getExportIdentifier().split('.')[-1] == config().servicename
 
 
 class InvalidURIError(Exception):

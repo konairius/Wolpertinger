@@ -13,7 +13,7 @@ import select
 import Pyro4
 
 import WTFilesystem
-import WTConfig
+from WTConfig import config
 import WTCopyTransport
 from Util import WTUri
 
@@ -22,17 +22,16 @@ class Manager(object):
 
     def __init__(self):
         self.exportTreads = dict()
-        self.config = WTConfig.getConfig()
 
     def startServer(self):
-        self.server = Server(self.config.getPublicAddress(), self.config.getSharedKey())
+        self.server = Server(config().publicAddress, config().sharedKey)
 
     def stopServer(self):
         self.server.close()
 
     def exposeFolders(self):
-        for key in self.config.getExposedFolders().keys():
-            self.exportTreads[key] = Thread(target=self.server.registerFolder, args=(key, self.config.getExposedFolders()[key]))
+        for key in config().exposedFolders.keys():
+            self.exportTreads[key] = Thread(target=self.server.registerFolder, args=(key, config().exposedFolders[key]))
             self.exportTreads[key].deamon = True
             self.exportTreads[key].name = 'export: ' + key
             self.exportTreads[key].start()
@@ -47,20 +46,19 @@ class Server(object):
         '''
         should only be called by the manager
         '''
-        self.config = WTConfig.getConfig()
         Pyro4.config.HMAC_KEY = sharedKey
         Pyro4.config.HOST = address
         self.isNameserver = False
         self.address = address
         self.services = []
         self.enshureNameserver()
-        self.registerService(ManagementInterface(), 'manager.' + self.config.getServicename())
+        self.registerService(ManagementInterface(), 'manager.' + config().servicename)
         logger.info('Server ready!')
 
     def close(self):
         logger.info('Closing server on ' + self.address)
-        self.nameserver.remove(regex='.*\.' + self.config.getServicename())
-        self.nameserver.remove('manager.' + self.config.getServicename())
+        self.nameserver.remove(regex='.*\.' + config().servicename)
+        self.nameserver.remove('manager.' + config().servicename)
         if self.isNameserver:
             del(self.nameserverThread)
 
@@ -117,9 +115,9 @@ class Server(object):
             raise Pyro4.errors.NamingError()
 
     def registerFolder(self, servicename, path):
-        if path not in self.config.getExposedFolders().values():
+        if path not in config().exposedFolders.values():
             raise WTFilesystem.TargetNotExposedError()
-        self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + self.config.getServicename())
+        self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + config().servicename)
         return
 
 
@@ -147,8 +145,7 @@ class ManagementInterface(object):
     Interface controling the Server
     '''
     def __init__(self):
-        self.config = WTConfig.getConfig()
-        self.copyAgent = WTCopyTransport.TransportAgent(self.config.getTransportDir())
+        self.copyAgent = WTCopyTransport.TransportAgent(config().transportDir)
 
     def sync(self, source, target):
         if not source.__class__ == WTUri.Uri:
@@ -161,8 +158,7 @@ class ManagementInterface(object):
 class Client(object):
 
     def __init__(self):
-        self.config = WTConfig.getConfig()
-        Pyro4.config.HMAC_KEY = self.config.getSharedKey()
+        Pyro4.config.HMAC_KEY = config().sharedKey
         self.nameserver = Pyro4.naming.locateNS()
         self.knownExports = dict()
 

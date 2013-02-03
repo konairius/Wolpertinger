@@ -9,51 +9,58 @@ logger = logging.getLogger(__name__)
 import configparser
 
 
-def getConfig():
+def config():
+    global _config
     try:
-        return config
+        return _config
     except NameError:
-        Config()
-        return config
+        _config = Config()
+        return _config
 
 
 class Config(object):
 
     def __init__(self, configPath='wolpertinger.conf'):
-        global config
         self.config = configparser.ConfigParser()
         self.config.read(configPath)
-        config = self
 
-    def getFileCache(self):
+    @property
+    def cachePath(self):
         return self.config['Global']['Cachepath']
 
+    @property
     def updateOlder(self):
         return self.config['Global']['OverwriteOlder'] == 'Yes'
 
-    def getServicename(self):
+    @property
+    def servicename(self):
         return self.config['Global']['Servicename']
 
-    def getSharedKey(self):
+    @property
+    def sharedKey(self):
         try:
             return bytes(self.config['Global']['SharedKey'], 'UTF-8')
         except KeyError:
             return None
 
-    def getPublicAddress(self):
+    @property
+    def publicAddress(self):
         return self.config['Global']['Address']
 
-    def getExposedFolders(self):
+    @property
+    def exposedFolders(self):
         folders = dict()
         for share in self.config.keys():
             if not share in ['Global', 'DEFAULT']:
                 folders[share] = self.config[share]['path']
         return folders
 
-    def getTransportDir(self):
+    @property
+    def transportDir(self):
         return self.config['Global']['TransportDir']
 
-    def getWorkerThreads(self):
+    @property
+    def workerThreads(self):
         try:
             return int(self.config['Global']['WorkerThreads'])
         except KeyError:

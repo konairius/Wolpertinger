@@ -15,24 +15,20 @@ import unittest
 
 import WTFilesystem
 import WTPyro
-import WTConfig
+from WTConfig import config
 from Util.WTUri import Uri
 
 
 class TestWTConfig(unittest.TestCase):
 
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.config = WTConfig.getConfig()
-
     def testGetExposedFolders(self):
-        self.config.getExposedFolders()
+        config().exposedFolders
 
 
 class TestWTFilesystem(unittest.TestCase):
 
     def testFile(self):
-        file1 = WTFilesystem.File('/home/konsti/Videos/29c3-5037-de-en-nougatbytes10_h264.mp4', Uri('WT://Testexport1.Testservice/'))
+        file1 = WTFilesystem.File('/home/konsti/Videos/Asterix/Asterix_bei_den_Briten.mkv', Uri('WT://Testexport1.Testservice/'))
         file2 = WTFilesystem.File('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
@@ -84,7 +80,7 @@ class TestWTPyroClient(unittest.TestCase):
         for export in self.client.findExports():
             folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
 
-    def tearDown(self):
+    def dtearDown(self):
         unittest.TestCase.tearDown(self)
         self.manager.stopServer()
 

@@ -7,22 +7,24 @@ Created on Jan 30, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-import shelve
+
 import hashlib
 from threading import Thread
 from queue import Queue
 import time
 
 
-from WTConfig import Config
+from WTConfig import config
+from Util.WTCache import cache
 
 
-def getHasher():
-    global hasher
+def hasher():
+    global _hasher
     try:
-        return hasher
+        return _hasher
     except NameError:
-        return Hasher()
+        _hasher = Hasher()
+        return _hasher
 
 
 class Hasher(object):
@@ -35,35 +37,27 @@ class Hasher(object):
         '''
         There must only be one Hasher at Time.
         '''
-        global hasher
         self.toHash = Queue()
-        self.config = Config()
-        for i in range(self.config.getWorkerThreads()):
+        for i in range(config().workerThreads):
             self.hashWorker = Thread(target=self.createHashWorker)
             self.hashWorker.daemon = True
             self.hashWorker.name = 'Hash Worker #' + str(i)
             self.hashWorker.start()
-        hasher = self
 
     def hashFile(self, file, sync=False):
         try:
-            cache = shelve.open(self.config.getFileCache())
-            cachedFile = cache[file.path]
-            cache.close()
+            cachedFile = cache().get(file)
             if cachedFile.mtime == file.mtime and cachedFile.size == file.size:
                 return cachedFile
             else:
                 raise FileChangedError()
         except (KeyError, FileChangedError):
-            cache.close()
             if False == sync:
                 self.toHash.put(file)
                 return file
             else:
                 file = self.createHash(file)
-                cache = shelve.open(self.config.getFileCache())
-                cache[file.path] = file
-                cache.close()
+                cache().add(file)
                 return file
 
     def createHashWorker(self):
@@ -71,13 +65,11 @@ class Hasher(object):
             file = self.toHash.get(block=True)
             try:
                 file = self.createHash(file)
+                cache().add(file)
             except IOError as e:
                 self.toHash.put(file)
                 logger.error(file.path + ': ' + str(e))
                 time.sleep(10)
-            cache = shelve.open(self.config.getFileCache())
-            cache[file.path] = file
-            cache.close()
             self.toHash.task_done()
 
     @staticmethod

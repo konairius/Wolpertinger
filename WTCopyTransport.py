@@ -55,9 +55,9 @@ class TransportAgent(object):
             virtualSource = item[0]
             virtualTarget = item[1]
 
-            realSource = self.client.getFolder(virtualSource).getPath()
-            realTarget = self.client.getFolder(virtualTarget).getPath()
-            transportPath = path.join(self.transportDir, path.relpath(realTarget, self.targetRoot.getPath()))
+            realSource = self.client.getFolder(virtualSource).path
+            realTarget = self.client.getFolder(virtualTarget).path
+            transportPath = path.join(self.transportDir, path.relpath(realTarget, self.targetRoot.path))
 
             if path.isdir(realSource):
                 transportPath = path.join(transportPath, path.basename(realSource))
