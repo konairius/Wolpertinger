@@ -13,11 +13,26 @@ from abc import ABCMeta, abstractmethod
 from WTConfig import getConfig
 from Util.WTUri import Uri
 from Util.WTHasher import getHasher
-
-fileCounter = 0
+from Util.WTHasher import NotYetCreatedError
 
 
 class Item(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def path(self):
+        '''
+        Returns the pysical path of the item
+        '''
+        pass
+
+    @property
+    @abstractmethod
+    def uri(self):
+        '''
+        Returns the logical Uri inside the Wolpertinger system
+        '''
+        pass
+
     @property
     @abstractmethod
     def size(self):
@@ -32,6 +47,7 @@ class Item(metaclass=ABCMeta):
         '''
         Returns the latest mtime of the underlying structure
         '''
+        pass
 
     @property
     @abstractmethod
@@ -45,7 +61,7 @@ class Item(metaclass=ABCMeta):
     def sync(self, other):
         '''
         Returns a list of Files or Folders that need to be copied
-        the sync the underlying structure.
+        the sync the underlying structures.
         '''
         pass
 
@@ -54,6 +70,7 @@ class Item(metaclass=ABCMeta):
         '''
         Returns True if the Items seem to have the same content
         '''
+        pass
 
     def getItem(self, uri):
         if self.uri == uri:
@@ -80,49 +97,86 @@ class File(Item):
         '''
         DONT'T USE: Use Factory instead!
         '''
-        self.uri = uri
-        self.path = path
+        self._uri = uri
+        self._path = path
         self._size = os.path.getsize(path)
         self._mtime = os.path.getmtime(path)
         try:
-            self.hash = getHasher().hashFile(self, sync).hash
-        except AttributeError as e:
+            self._hash = getHasher().hashFile(self, sync).hash
+        except NotYetCreatedError as e:
             if not sync:
                 pass
             else:
                 raise AttributeError(e)
 
-    def matches(self, other):
-        try:
-            if self.hash == other.hash:
-                return True
-            return False
-        except AttributeError:
-            return False
-
-    def sync(self, file):
-        syncList = []
-        if self.matches(file):
-            pass
-        else:
-            logger.warning(self.uri.string + ' exists on both ends but dosn\'t Match')
-        return syncList
+    @property
+    def path(self):
+        '''
+        Returns the pysical path of the item
+        '''
+        return self._path
 
     @property
-    def hasHash(self):
-        try:
-            self.hash
-            return True
-        except AttributeError:
-            return False
+    def uri(self):
+        '''
+        Returns the logical Uri inside the Wolpertinger system
+        '''
+        return self._uri
 
     @property
     def size(self):
+        '''
+        Return the size of the underlying structure or file.
+        '''
         return self._size
 
     @property
     def mtime(self):
+        '''
+        Returns the latest mtime of the underlying structure
+        '''
         return self._mtime
+
+    @property
+    def hash(self):
+        '''
+        Returns the hash of the file
+        '''
+        try:
+            return self._hash
+        except AttributeError as e:
+            raise NotYetCreatedError(e)
+
+    @hash.setter
+    def hash(self, value):
+        self._hash = value
+
+    @property
+    def hasHash(self):
+        '''
+        Return if every element underlying structure has been Hashed.
+        '''
+        try:
+            self.hash
+            return True
+        except NotYetCreatedError:
+            return False
+
+    def sync(self, other):
+        '''
+        Returns a list of Files or Folders that need to be copied
+        the sync the underlying structures.
+        '''
+        if self.matches(other):
+            return ((self.uri(), other.uri()))
+
+    def matches(self, other):
+        '''
+        Returns True if the Items seem to have the same content
+        '''
+        if self.hash == other.hash:
+            return True
+        return False
 
 
 class Folder(Item):
@@ -134,11 +188,9 @@ class Folder(Item):
 
     def __init__(self, path, uri, sync=True):
         self.config = getConfig()
-        #if path not in self.config.getExposedFolders().values():
-        #    raise TargetNotExposedError(path)
-        self.items = dict()
-        self.path = path
-        self.uri = uri
+        self._items = dict()
+        self._path = path
+        self._uri = uri
         self._mtime = os.path.getmtime(path)
         for item in listdir(path):
             try:
@@ -149,9 +201,74 @@ class Folder(Item):
             except Exception as e:
                 logger.error(str(uri.append(item)) + ': ' + str(e))
 
+    @property
+    def path(self):
+        '''
+        Returns the pysical path of the item
+        '''
+        return self._path
+
+    @property
+    def uri(self):
+        '''
+        Returns the logical Uri inside the Wolpertinger system
+        '''
+        return self._uri
+
+    @property
+    def items(self):
+        '''
+        The items in the Folder, using the name as key
+        '''
+        return self._items
+
+    @property
+    def size(self):
+        '''
+        Return the size of the underlying structure or file.
+        '''
+        size = 0
+        for key in self.items.keys():
+            size += self.items[key].size
+
+    @property
+    def mtime(self):
+        '''
+        Returns the latest mtime of the underlying structure
+        '''
+        mtime = self._mtime
+        for key in self.items.keys():
+            kmtime = self.items[key].mtime
+            if kmtime > mtime:
+                mtime = kmtime
+        return mtime
+
+    @property
+    def hasHash(self):
+        '''
+        Return if every element underlying structure has been Hashed.
+        '''
+        for key in self.items.keys():
+            if not self.items[key].hasHash:
+                return False
+            return True
+
+    def sync(self, other):
+        '''
+        Returns a list of Files or Folders that need to be copied
+        the sync the underlying structures.
+        '''
+        syncList = []
+        for key in self.items.keys():
+            try:
+                syncList += self.items[key].sync(other.items[key])
+            except KeyError:
+                syncList.append((str(self.items[key].uri), str(other.uri)))
+        return syncList
+
     def matches(self, other):
         '''
-        Quickly checks recursive if the Folders are matching.
+        Returns True if the Items seem to have the same content
         '''
         try:
             for key in self.items.keys():
@@ -160,40 +277,6 @@ class Folder(Item):
                 return True
         except (KeyError, AttributeError):
             return False
-
-    def sync(self, folder):
-        syncList = []
-        for key in self.items.keys():
-            try:
-                syncList += self.items[key].sync(folder.items[key])
-            except KeyError:
-                #localPath = self.items[key].getPath()
-                #remotePath = os.path.join(folder.getPath(), (os.path.relpath(self.items[key].getPath(), self.path)))
-                syncList.append((str(self.items[key].uri), str(folder.uri)))
-
-        return syncList
-
-    @property
-    def hasHash(self):
-        for key in self.items.keys():
-            if not self.items[key].hasHash:
-                return False
-            return True
-
-    @property
-    def size(self):
-        size = 0
-        for key in self.items.keys():
-            size += self.items[key].size
-
-    @property
-    def mtime(self):
-        mtime = self._mtime
-        for key in self.items.keys():
-            kmtime = self.items[key].mtime
-            if kmtime > mtime:
-                mtime = kmtime
-        return mtime
 
 
 class Export(object):

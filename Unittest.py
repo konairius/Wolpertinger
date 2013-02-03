@@ -32,7 +32,7 @@ class TestWTConfig(unittest.TestCase):
 class TestWTFilesystem(unittest.TestCase):
 
     def testFile(self):
-        file1 = WTFilesystem.File('/home/konsti/tmp/WTBase.log', Uri('WT://Testexport1.Testservice/'))
+        file1 = WTFilesystem.File('/home/konsti/Videos/29c3-5037-de-en-nougatbytes10_h264.mp4', Uri('WT://Testexport1.Testservice/'))
         file2 = WTFilesystem.File('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
@@ -46,18 +46,16 @@ class TestWTFilesystem(unittest.TestCase):
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
 
-        logger.debug('Created ' + str(WTFilesystem.fileCounter) + ' File Objects!')
-
 
 class TestWTPyroManager(unittest.TestCase):
 
-    def testManager(self):
+    def dtestManager(self):
         manager = WTPyro.Manager()
         manager.startServer()
         #time.sleep(5)
         manager.stopServer()
 
-    def testExposeFolders(self):
+    def dtestExposeFolders(self):
         manager = WTPyro.Manager()
         manager.startServer()
         #time.sleep(5)
@@ -86,7 +84,7 @@ class TestWTPyroClient(unittest.TestCase):
         for export in self.client.findExports():
             folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
 
-    def dtearDown(self):
+    def tearDown(self):
         unittest.TestCase.tearDown(self)
         self.manager.stopServer()
 

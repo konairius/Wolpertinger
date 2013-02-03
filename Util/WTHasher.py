@@ -93,3 +93,7 @@ class Hasher(object):
 
 class FileChangedError(Exception):
     pass
+
+
+class NotYetCreatedError(Exception):
+    pass
