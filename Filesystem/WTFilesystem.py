@@ -93,18 +93,19 @@ class File(Item):
     it will Cache the hashes
     '''
 
-    def __init__(self, path, uri, sync=True):
+    def __init__(self, path, uri, sync=True, virtual=False):
         self._uri = uri
         self._path = path
-        self._size = os.path.getsize(path)
-        self._mtime = os.path.getmtime(path)
-        try:
-            self._hash = hasher().hashFile(self, sync).hash
-        except NotYetCreatedError as e:
-            if not sync:
-                pass
-            else:
-                raise AttributeError(e)
+        if not virtual:
+            self._size = os.path.getsize(path)
+            self._mtime = os.path.getmtime(path)
+            try:
+                self._hash = hasher().hashFile(self, sync).hash
+            except NotYetCreatedError as e:
+                if not sync:
+                    pass
+                else:
+                    raise AttributeError(e)
 
     def __repr__(self):
         return self.path
@@ -186,19 +187,20 @@ class Folder(Item):
     use it with caution.
     '''
 
-    def __init__(self, path, uri, sync=True):
+    def __init__(self, path, uri, sync=True, virtual=False):
         self._items = dict()
         self._path = path
         self._uri = uri
-        self._mtime = os.path.getmtime(path)
-        for item in listdir(path):
-            try:
-                if os.path.isdir(os.path.join(path, item)):
-                    self.items[item] = Folder(os.path.join(path, item), self.uri.append(item), sync)
-                elif os.path.isfile(os.path.join(path, item)):
-                    self.items[item] = File(os.path.join(path, item), self.uri.append(item), sync)
-            except Exception as e:
-                logger.error(str(uri.append(item)) + ': ' + str(e))
+        if not virtual:
+            self._mtime = os.path.getmtime(path)
+            for item in listdir(path):
+                try:
+                    if os.path.isdir(os.path.join(path, item)):
+                        self.items[item] = Folder(os.path.join(path, item), self.uri.append(item), sync)
+                    elif os.path.isfile(os.path.join(path, item)):
+                        self.items[item] = File(os.path.join(path, item), self.uri.append(item), sync)
+                except Exception as e:
+                    logger.error(str(uri.append(item)) + ': ' + str(e))
 
     def __repr__(self):
         return self.path()

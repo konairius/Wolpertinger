@@ -7,13 +7,20 @@ Created on Jan 28, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-from Server.WTPyro import Client
-
 
 from queue import Queue
 from os import path
 import shutil
 from threading import Thread
+
+
+def copyAgent():
+    global _copyAgent
+    try:
+        return _copyAgent
+    except NameError:
+        _copyAgent = CopyAgent
+        return _copyAgent
 
 
 class CopyAgent(object):
@@ -27,7 +34,6 @@ class CopyAgent(object):
         '''
         self.transportDir = transportDir
         self.copyQueue = Queue()
-        self.client = Client()
         self.threadPool = dict()
         for num in range(workerThreads):
             self.threadPool[num] = Thread(target=self.worker)

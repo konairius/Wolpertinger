@@ -13,7 +13,6 @@ import Pyro4
 
 from Filesystem.WTFilesystem import TargetNotExposedError
 from Filesystem.WTFilesystem import Export
-from Filesystem.WTCopyTransport import TransportAgent
 from Util.WTConfig import config
 from Util.WTUri import Uri
 
