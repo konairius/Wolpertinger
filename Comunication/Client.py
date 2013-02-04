@@ -32,7 +32,7 @@ class Client(object):
         '''
         method must be a callable that implements ClientInterface
         '''
-        self.knownClients.append(method)
+        self.knownClients.append(method())
 
     def get(self, uri):
         if not uri.__class__ == Uri:

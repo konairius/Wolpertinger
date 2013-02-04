@@ -18,7 +18,9 @@ from Util.Uri import Uri
 from Filesystem import Filesystem
 from Comunication.Client import UriNotFoundError
 from Comunication.Client import client as masterClient
+from Comunication.Server import server as masterServer
 from Comunication.Pyro import Client as PyroClient
+from Comunication.Pyro import Server as PyroServer
 
 
 class TestConfig(unittest.TestCase):
@@ -76,12 +78,31 @@ class TestUtilUri(unittest.TestCase):
 
 class TestComunicationClient(unittest.TestCase):
 
-    def testRegister(self):
-        self.assertRaises(Pyro4.errors.NamingError, PyroClient)
-
     def testGet(self):
         uri = 'WT://export.noExeistent.Fluttershy/'
         self.assertRaises(UriNotFoundError, masterClient().get, (uri))
+
+
+class TestComunicationServer(unittest.TestCase):
+
+    def testRegister(self):
+        masterServer().register(PyroServer)
+
+    def testAdd(self):
+        masterServer().register(PyroServer)
+        masterServer().add('/home/konsti/Videos', 'Videos')
+
+
+class TestClientServerComm(unittest.TestCase):
+
+    def testGetItem(self):
+        uri = 'WT://export.Videos.Fluttershy/'
+        masterServer().register(PyroServer)
+        masterServer().add('/home/konsti/Videos', 'Videos')
+        masterClient().register(PyroClient)
+        folder = masterClient().get(uri)
+        for item in folder.items.keys():
+            logger.debug('Found: ' + str(item))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWTFilesystem']

@@ -6,50 +6,35 @@ Created on Jan 25, 2013
 import logging
 logger = logging.getLogger(__name__)
 
+from threading import Thread
+import select
+
 import Pyro4
 
 from Util.Config import config
 from Util.Uri import Uri
+from Filesystem.Filesystem import Export
 from Comunication.Client import ClientInterface
 from Comunication.Client import UriNotFoundError
+from Comunication.Server import ServerInterface
 
-"""
-class Manager(object):
+
+class Server(ServerInterface):
+    '''
+    Impelemnts the ServerInterface for Pyro Comm
+    '''
 
     def __init__(self):
-        self.exportTreads = dict()
-
-    def startServer(self):
-        self.server = Server(config().publicAddress, config().sharedKey)
-
-    def stopServer(self):
-        self.server.close()
-
-    def exposeFolders(self):
-        for key in config().exposedFolders.keys():
-            self.exportTreads[key] = Thread(target=self.server.registerFolder, args=(key, config().exposedFolders[key]))
-            self.exportTreads[key].deamon = True
-            self.exportTreads[key].name = 'export: ' + key
-            self.exportTreads[key].start()
-
-
-class Server(object):
-    '''
-    Use the manager to comuinicate with this class
-    '''
-
-    def __init__(self, address='localhost', sharedKey=None):
         '''
         should only be called by the manager
         '''
-        Pyro4.config.HMAC_KEY = sharedKey
-        Pyro4.config.HOST = address
+        Pyro4.config.HMAC_KEY = config().sharedKey
+        Pyro4.config.HOST = config().publicAddress
         self.isNameserver = False
-        self.address = address
+        self.address = config().publicAddress
         self.services = []
         self.enshureNameserver()
-        self.registerService(ManagementInterface(), 'manager.' + config().servicename)
-        logger.info('Server ready!')
+        logger.info('Pyro-Server ready!')
 
     def close(self):
         logger.info('Closing server on ' + self.address)
@@ -110,31 +95,31 @@ class Server(object):
         else:
             raise Pyro4.errors.NamingError()
 
-    def registerFolder(self, servicename, path):
-        if path not in config().exposedFolders.values():
-            raise TargetNotExposedError(path)
-        self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + config().servicename)
+    def add(self, path, name):
+        interface = ExportInterface(path, name)
+        self.registerService(interface, interface.exportName)
         return
 
 
-class FolderInterface(object):
+class ExportInterface(object):
     '''
     The interface that will be exposed via Pyro
     '''
-    def __init__(self, path, exportname):
+    def __init__(self, path, name):
 
+        self.exportName = 'export.' + name + '.' + config().servicename
         logger.info('Creating remote interface for: ' + path)
-        self.export = Export(path, exportname)
+        self.export = Export(path, self.exportName)
         logger.info('Remote Interface for: ' + path + ' will be exposed on ' + str(self.export.getRootUri()))
 
     def refresh(self):
         self.export.refresh()
 
-    def getFolder(self, uri=None):
+    def getItem(self, uri=None):
         if None == uri:
             uri = self.export.getRootUri()
         return self.export.getItem(uri)
-
+"""
 
 class ManagementInterface(object):
     '''
@@ -173,6 +158,6 @@ class Client(ClientInterface):
         if uri.getExportIdentifier() not in self.knownExports.keys():
             self.findExports()
         try:
-            return self.knownExports[uri.getExportIdentifier()].getFolder(uri)
+            return self.knownExports[uri.getExportIdentifier()].getItem(uri)
         except KeyError:
             raise UriNotFoundError(str(uri))

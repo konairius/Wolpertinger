@@ -288,7 +288,7 @@ class Export(object):
     Represents an Export root
     '''
     def __init__(self, path, name):
-        self.rootUri = Uri('WT://export.' + name + '.' + config().servicename + '/')
+        self.rootUri = Uri('WT://' + name + '/')
         self.path = path
         self.name = name
         self.refresh(sync=False)

@@ -10,8 +10,9 @@ import logging
 import argparse
 import time
 
-from Server import WTPyro
-from Util import WTConfig
+from Comunication.Server import server as masterServer
+from Comunication.Pyro import Server as PyroServer
+from Util.Config import config
 
 
 def main():
@@ -46,16 +47,15 @@ def main():
         logging.basicConfig(filename=args.logfile)
         logging.basicConfig(format=FORMAT)
 
-    WTConfig.Config(args.configfile)
+    #WTConfig.Config(args.configfile)
 
-    m = WTPyro.Manager()
-    m.startServer()
-    m.exposeFolders()
+    masterServer().register(PyroServer)
+    for key in config().exposedFolders.keys():
+        masterServer().add(config().exposedFolders[key], key)
     while False == shutdown:
         if 'quit' == input('#:'):
             break
         time.sleep(10)
-    m.stopServer()
 
 
 if __name__ == '__main__':
