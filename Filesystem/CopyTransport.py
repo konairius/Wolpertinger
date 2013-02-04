@@ -14,12 +14,15 @@ import shutil
 from threading import Thread
 
 
+from Util.Config import config
+
+
 def copyAgent():
     global _copyAgent
     try:
         return _copyAgent
     except NameError:
-        _copyAgent = CopyAgent
+        _copyAgent = CopyAgent()
         return _copyAgent
 
 
@@ -28,50 +31,38 @@ class CopyAgent(object):
     classdocs
     '''
 
-    def __init__(self, transportDir, workerThreads=4):
+    def __init__(self):
         '''
         Constructor
         '''
-        self.transportDir = transportDir
         self.copyQueue = Queue()
         self.threadPool = dict()
-        for num in range(workerThreads):
+        for num in range(1):
             self.threadPool[num] = Thread(target=self.worker)
             self.threadPool[num].daemon = True
             self.threadPool[num].start()
 
         logger.info('Transport Agent Running')
 
-    def sync(self, source, target, block=False):
-        if not source.isLocal():
-            raise SourceNotLocalError
-
-        self.sourceRoot = self.client.getFolder(source)
-        self.targetRoot = self.client.getFolder(target)
-        rawList = self.sourceRoot.sync(self.targetRoot)
-        for job in rawList:
-            self.copyQueue.put(job)
-
+    def add(self, source, target, block=False):
+        self.copyQueue.put((source, target))
         if block:
             self.copyQueue.join()
 
     def worker(self):
         while True:
             item = self.copyQueue.get(block=True)
-            virtualSource = item[0]
-            virtualTarget = item[1]
 
-            realSource = self.client.getFolder(virtualSource).path
-            realTarget = self.client.getFolder(virtualTarget).path
-            transportPath = path.join(self.transportDir, path.relpath(realTarget, self.targetRoot.path))
+            source = item[0]
+            target = item[1]
 
-            if path.isdir(realSource):
-                transportPath = path.join(transportPath, path.basename(realSource))
-                logger.debug(realSource + ' => ' + transportPath)
-                shutil.copytree(realSource, transportPath)
-            elif path.isfile(realSource):
-                logger.debug(realSource + ' => ' + transportPath)
-                shutil.copy(realSource, transportPath)
+            if path.isdir(source):
+                target = path.join(target, path.basename(source))
+                logger.debug(source + ' => ' + target)
+                shutil.copytree(source, target)
+            elif path.isfile(source):
+                logger.debug(source + ' => ' + target)
+                shutil.copy(source, target)
 
             self.copyQueue.task_done()
 

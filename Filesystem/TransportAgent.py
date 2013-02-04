@@ -27,4 +27,5 @@ class MasterAgent(object):
             targetItem = client().get(transfer[1])
             if sourceItem.uri.isLocal() and targetItem.uri.isLocal():
                 copyAgent().add(sourceItem.path, targetItem.path)
-                
+            else:
+                raise NotImplementedError()

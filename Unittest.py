@@ -11,11 +11,11 @@ logging.basicConfig(level=logging.DEBUG, filename='/home/konsti/tmp/WTBase.log',
 logger = logging.getLogger(__name__)
 
 import unittest
-import Pyro4
 
 from Util.Config import config
 from Util.Uri import Uri
 from Filesystem import Filesystem
+from Filesystem.TransportAgent import MasterAgent
 from Comunication.Client import UriNotFoundError
 from Comunication.Client import client as masterClient
 from Comunication.Server import server as masterServer
@@ -103,6 +103,23 @@ class TestClientServerComm(unittest.TestCase):
         folder = masterClient().get(uri)
         for item in folder.items.keys():
             logger.debug('Found: ' + str(item))
+
+
+class TestFilesystemTransportAgent(unittest.TestCase):
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        masterServer().register(PyroServer)
+        masterServer().add('/home/konsti/Videos', 'Videos')
+        masterServer().add('/home/konsti/tmp', 'tmp')
+        masterClient().register(PyroClient)
+
+    def testCopyLocal(self):
+        folder1 = masterClient().get('WT://export.tmp.Fluttershy/')
+        folder2 = masterClient().get('WT://export.Videos.Fluttershy/')
+
+        MasterAgent().add(folder1.sync(folder2))
+        MasterAgent().add(folder2.sync(folder1))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWTFilesystem']

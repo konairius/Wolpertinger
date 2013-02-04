@@ -168,8 +168,10 @@ class File(Item):
         Returns a list of Files or Folders that need to be copied
         the sync the underlying structures.
         '''
-        if self.matches(other):
-            return ((self.uri(), other.uri()))
+        if not self.matches(other):
+            return ((self.uri, other.uri))
+        else:
+            return []
 
     def matches(self, other):
         '''
