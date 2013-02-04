@@ -10,8 +10,8 @@ import logging
 import argparse
 import time
 
-import WTPyro
-import WTConfig
+from Server import WTPyro
+from Util import WTConfig
 
 
 def main():

@@ -8,7 +8,7 @@ import shelve
 from threading import Semaphore
 
 
-from WTConfig import config
+from Util.WTConfig import config
 
 
 def cache():

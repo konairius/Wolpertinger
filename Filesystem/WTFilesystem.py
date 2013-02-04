@@ -10,7 +10,7 @@ import os
 from os import listdir
 from abc import ABCMeta, abstractmethod
 
-from WTConfig import config
+from Util.WTConfig import config
 from Util.WTUri import Uri
 from Util.WTHasher import hasher
 from Util.WTHasher import NotYetCreatedError

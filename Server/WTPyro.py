@@ -6,16 +6,16 @@ Created on Jan 25, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-#from multiprocessing import Process
 from threading import Thread
 import select
 
 import Pyro4
 
-import WTFilesystem
-from WTConfig import config
-import WTCopyTransport
-from Util import WTUri
+from Filesystem.WTFilesystem import TargetNotExposedError
+from Filesystem.WTFilesystem import Export
+from Filesystem.WTCopyTransport import TransportAgent
+from Util.WTConfig import config
+from Util.WTUri import Uri
 
 
 class Manager(object):
@@ -116,7 +116,7 @@ class Server(object):
 
     def registerFolder(self, servicename, path):
         if path not in config().exposedFolders.values():
-            raise WTFilesystem.TargetNotExposedError()
+            raise TargetNotExposedError(path)
         self.registerService(FolderInterface(path, servicename), 'export.' + servicename + '.' + config().servicename)
         return
 
@@ -128,7 +128,7 @@ class FolderInterface(object):
     def __init__(self, path, exportname):
 
         logger.info('Creating remote interface for: ' + path)
-        self.export = WTFilesystem.Export(path, exportname)
+        self.export = Export(path, exportname)
         logger.info('Remote Interface for: ' + path + ' will be exposed on ' + str(self.export.getRootUri()))
 
     def refresh(self):
@@ -145,13 +145,13 @@ class ManagementInterface(object):
     Interface controling the Server
     '''
     def __init__(self):
-        self.copyAgent = WTCopyTransport.TransportAgent(config().transportDir)
+        self.copyAgent = TransportAgent(config().transportDir)
 
     def sync(self, source, target):
-        if not source.__class__ == WTUri.Uri:
-            source = WTUri.Uri(source)
-        if not target.__class__ == WTUri.Uri:
-            target = WTUri.Uri(target)
+        if not source.__class__ == Uri:
+            source = Uri(source)
+        if not target.__class__ == Uri:
+            target = Uri(target)
         self.copyAgent.sync(source, target, True)
 
 
@@ -170,8 +170,8 @@ class Client(object):
         return list(self.knownExports.keys())
 
     def getFolder(self, uri):
-        if not uri.__class__ == WTUri.Uri:
-            uri = WTUri.Uri(uri)
+        if not uri.__class__ == Uri:
+            uri = Uri(uri)
         logger.info('Requesting Item from Remote:' + str(uri))
         if uri.getExportIdentifier() not in self.knownExports.keys():
             self.findExports()

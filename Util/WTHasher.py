@@ -14,7 +14,7 @@ from queue import Queue
 import time
 
 
-from WTConfig import config
+from Util.WTConfig import config
 from Util.WTCache import cache
 from Util.WTCache import NotInCacheError
 

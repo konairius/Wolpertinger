@@ -7,7 +7,7 @@ Created on Jan 28, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-import WTPyro
+from Server.WTPyro import Client
 
 
 from queue import Queue
@@ -16,7 +16,7 @@ import shutil
 from threading import Thread
 
 
-class TransportAgent(object):
+class CopyAgent(object):
     '''
     classdocs
     '''
@@ -27,7 +27,7 @@ class TransportAgent(object):
         '''
         self.transportDir = transportDir
         self.copyQueue = Queue()
-        self.client = WTPyro.Client()
+        self.client = Client()
         self.threadPool = dict()
         for num in range(workerThreads):
             self.threadPool[num] = Thread(target=self.worker)

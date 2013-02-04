@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 import unittest
 
 
-import WTFilesystem
-import WTPyro
-from WTConfig import config
+#from Server import WTPyro
+from Util.WTConfig import config
 from Util.WTUri import Uri
+from Filesystem import WTFilesystem
 
 
 class TestWTConfig(unittest.TestCase):
@@ -42,16 +42,16 @@ class TestWTFilesystem(unittest.TestCase):
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
 
-
+'''
 class TestWTPyroManager(unittest.TestCase):
 
-    def dtestManager(self):
+    def testManager(self):
         manager = WTPyro.Manager()
         manager.startServer()
         #time.sleep(5)
         manager.stopServer()
 
-    def dtestExposeFolders(self):
+    def testExposeFolders(self):
         manager = WTPyro.Manager()
         manager.startServer()
         #time.sleep(5)
@@ -62,7 +62,7 @@ class TestWTPyroManager(unittest.TestCase):
 
 class TestWTPyroClient(unittest.TestCase):
 
-    def dsetUp(self):
+    def setUp(self):
         unittest.TestCase.setUp(self)
         self.manager = WTPyro.Manager()
         self.manager.startServer()
@@ -70,20 +70,20 @@ class TestWTPyroClient(unittest.TestCase):
         #time.sleep(10)
         self.client = WTPyro.Client()
 
-    def dtestFindExports(self):
+    def testFindExports(self):
         exports = self.client.findExports()
         for export in exports:
             logger.debug('Found export: ' + export)
 
-    def dtestGetFolder(self):
+    def testGetFolder(self):
         folders = dict()
         for export in self.client.findExports():
             folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
 
-    def dtearDown(self):
+    def tearDown(self):
         unittest.TestCase.tearDown(self)
         self.manager.stopServer()
-
+'''
 
 class TestUtilWTUri(unittest.TestCase):
 
