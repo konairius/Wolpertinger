@@ -11,81 +11,41 @@ logging.basicConfig(level=logging.DEBUG, filename='/home/konsti/tmp/WTBase.log',
 logger = logging.getLogger(__name__)
 
 import unittest
+import Pyro4
+
+from Util.Config import config
+from Util.Uri import Uri
+from Filesystem import Filesystem
+from Comunication.Client import UriNotFoundError
+from Comunication.Client import client as masterClient
+from Comunication.Pyro import Client as PyroClient
 
 
-#from Server import WTPyro
-from Util.WTConfig import config
-from Util.WTUri import Uri
-from Filesystem import WTFilesystem
-
-
-class TestWTConfig(unittest.TestCase):
+class TestConfig(unittest.TestCase):
 
     def testGetExposedFolders(self):
         config().exposedFolders
 
 
-class TestWTFilesystem(unittest.TestCase):
+class TestFilesystemFilesystem(unittest.TestCase):
 
     def testFile(self):
-        file1 = WTFilesystem.File('/home/konsti/Videos/Asterix/Asterix_bei_den_Briten.mkv', Uri('WT://Testexport1.Testservice/'))
-        file2 = WTFilesystem.File('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
+        file1 = Filesystem.File('/home/konsti/Videos/Asterix/Asterix_bei_den_Briten.mkv', Uri('WT://Testexport1.Testservice/'))
+        file2 = Filesystem.File('/home/konsti/tmp/WTCache', Uri('WT://Testexport2.Testservice/'))
         self.assertTrue(file1.matches(file1), 'File dosn`t match itself...')
         self.assertFalse(file1.matches(file2), 'These files should not Match')
 
     def testFolder(self):
-        folder1 = WTFilesystem.Folder('/home/konsti/Pictures', Uri('WT://Testexport1.Testservice/'))
-        folder2 = WTFilesystem.Folder('/home/konsti/Videos', Uri('WT://Testexport2.Testservice/'))
+        folder1 = Filesystem.Folder('/home/konsti/Pictures', Uri('WT://Testexport1.Testservice/'))
+        folder2 = Filesystem.Folder('/home/konsti/Videos', Uri('WT://Testexport2.Testservice/'))
         #  self.assertTrue(folder1.matches(folder1), 'Folder dosn`t match itself...')
         #  self.assertFalse(folder1.matches(folder2), 'These Folders should not Match')
         syncList = folder1.sync(folder2)
         for syncItem in syncList:
             logger.debug(syncItem[0] + ' -> ' + syncItem[1])
 
-'''
-class TestWTPyroManager(unittest.TestCase):
 
-    def testManager(self):
-        manager = WTPyro.Manager()
-        manager.startServer()
-        #time.sleep(5)
-        manager.stopServer()
-
-    def testExposeFolders(self):
-        manager = WTPyro.Manager()
-        manager.startServer()
-        #time.sleep(5)
-        manager.exposeFolders()
-        #time.sleep(5)
-        manager.stopServer()
-
-
-class TestWTPyroClient(unittest.TestCase):
-
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.manager = WTPyro.Manager()
-        self.manager.startServer()
-        self.manager.exposeFolders()
-        #time.sleep(10)
-        self.client = WTPyro.Client()
-
-    def testFindExports(self):
-        exports = self.client.findExports()
-        for export in exports:
-            logger.debug('Found export: ' + export)
-
-    def testGetFolder(self):
-        folders = dict()
-        for export in self.client.findExports():
-            folders[export] = self.client.getFolder(Uri.fromExportIdentifier(export))
-
-    def tearDown(self):
-        unittest.TestCase.tearDown(self)
-        self.manager.stopServer()
-'''
-
-class TestUtilWTUri(unittest.TestCase):
+class TestUtilUri(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -112,6 +72,16 @@ class TestUtilWTUri(unittest.TestCase):
 
     def testGetNextItem(self):
         self.assertEqual(self.subUri.getNextItem(self.rootUri), 'something')
+
+
+class TestComunicationClient(unittest.TestCase):
+
+    def testRegister(self):
+        self.assertRaises(Pyro4.errors.NamingError, PyroClient)
+
+    def testGet(self):
+        uri = 'WT://export.noExeistent.Fluttershy/'
+        self.assertRaises(UriNotFoundError, masterClient().get, (uri))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWTFilesystem']

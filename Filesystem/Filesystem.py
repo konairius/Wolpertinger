@@ -10,10 +10,10 @@ import os
 from os import listdir
 from abc import ABCMeta, abstractmethod
 
-from Util.WTConfig import config
-from Util.WTUri import Uri
-from Util.WTHasher import hasher
-from Util.WTHasher import NotYetCreatedError
+from Util.Config import config
+from Util.Uri import Uri
+from Util.Hasher import hasher
+from Util.Hasher import NotYetCreatedError
 
 
 class Item(metaclass=ABCMeta):

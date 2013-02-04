@@ -6,17 +6,14 @@ Created on Jan 25, 2013
 import logging
 logger = logging.getLogger(__name__)
 
-from threading import Thread
-import select
-
 import Pyro4
 
-from Filesystem.WTFilesystem import TargetNotExposedError
-from Filesystem.WTFilesystem import Export
-from Util.WTConfig import config
-from Util.WTUri import Uri
+from Util.Config import config
+from Util.Uri import Uri
+from Comunication.Client import ClientInterface
+from Comunication.Client import UriNotFoundError
 
-
+"""
 class Manager(object):
 
     def __init__(self):
@@ -152,9 +149,10 @@ class ManagementInterface(object):
         if not target.__class__ == Uri:
             target = Uri(target)
         self.copyAgent.sync(source, target, True)
+"""
 
 
-class Client(object):
+class Client(ClientInterface):
 
     def __init__(self):
         Pyro4.config.HMAC_KEY = config().sharedKey
@@ -168,7 +166,7 @@ class Client(object):
             self.knownExports[key] = Pyro4.Proxy('PYRONAME:' + key)
         return list(self.knownExports.keys())
 
-    def getFolder(self, uri):
+    def get(self, uri):
         if not uri.__class__ == Uri:
             uri = Uri(uri)
         logger.info('Requesting Item from Remote:' + str(uri))
@@ -176,9 +174,5 @@ class Client(object):
             self.findExports()
         try:
             return self.knownExports[uri.getExportIdentifier()].getFolder(uri)
-        except KeyError as e:
-            raise ExportNotFoundError(e)
-
-
-class ExportNotFoundError(Exception):
-    pass
+        except KeyError:
+            raise UriNotFoundError(str(uri))

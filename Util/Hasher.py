@@ -14,9 +14,9 @@ from queue import Queue
 import time
 
 
-from Util.WTConfig import config
-from Util.WTCache import cache
-from Util.WTCache import NotInCacheError
+from Util.Config import config
+from Util.Cache import cache
+from Util.Cache import NotInCacheError
 
 
 def hasher():

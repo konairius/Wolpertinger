@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from os import path
-from Util.WTConfig import config
+from Util.Config import config
 
 
 class Uri(object):
