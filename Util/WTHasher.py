@@ -16,6 +16,7 @@ import time
 
 from WTConfig import config
 from Util.WTCache import cache
+from Util.WTCache import NotInCacheError
 
 
 def hasher():
@@ -51,7 +52,7 @@ class Hasher(object):
                 return cachedFile
             else:
                 raise FileChangedError()
-        except (KeyError, FileChangedError):
+        except (NotInCacheError, FileChangedError):
             if False == sync:
                 self.toHash.put(file)
                 return file
@@ -64,13 +65,17 @@ class Hasher(object):
         while True:
             file = self.toHash.get(block=True)
             try:
-                file = self.createHash(file)
-                cache().add(file)
-            except IOError as e:
-                self.toHash.put(file)
-                logger.error(file.path + ': ' + str(e))
-                time.sleep(10)
-            self.toHash.task_done()
+                cache().get(file)
+            except NotInCacheError:
+                try:
+                    file = self.createHash(file)
+                    cache().add(file)
+                except IOError as e:
+                    self.toHash.put(file)
+                    logger.error(file.path + ': ' + str(e))
+                    time.sleep(10)
+            finally:
+                self.toHash.task_done()
 
     @staticmethod
     def createHash(file):

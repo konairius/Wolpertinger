@@ -5,8 +5,7 @@ Created on Feb 3, 2013
 '''
 
 import shelve
-from threading import Thread
-from queue import Queue
+from threading import Semaphore
 
 
 from WTConfig import config
@@ -31,36 +30,41 @@ class Cache(object):
         Constructor
         '''
         self.cachePath = config().cachePath
-        self.writeQueue = Queue()
-        self.writerWorker = Thread(target=self.writerWorker)
-        self.writerWorker.daemon = True
-        self.writerWorker.start()
+        self.writeSemaphore = Semaphore()
 
     def add(self, item):
-        self.writeQueue.put(item)
+        try:
+            self.writeSemaphore.acquire(blocking=True)
+            cache = shelve.open(self.cachePath, writeback=False)
+            key = self.getKey(item)
+            cache[key] = item
+        except IOError as e:
+            raise CacheNotAvailableError(e)
+        finally:
+            self.writeSemaphore.release()
+            cache.close()
 
     def get(self, item):
-        cache = shelve.open(self.cachePath, writeback=False)
-        key = self.getKey(item)
-        item = cache[key]
-        cache.close()
+        try:
+            cache = shelve.open(self.cachePath, writeback=False)
+            key = self.getKey(item)
+            item = cache[key]
+        except KeyError as e:
+            raise NotInCacheError(e)
+        except IOError as e:
+            raise CacheNotAvailableError(e)
+        finally:
+            cache.close()
         return item
-
-    def writerWorker(self):
-        while True:
-            item = self.writeQueue.get(block=True)
-            self.write(item)
-            self.writeQueue.task_done()
-
-    def write(self, item):
-        '''
-        Don't use this, it is for the writeWorker only!
-        '''
-        cache = shelve.open(self.cachePath, writeback=False)
-        key = self.getKey(item)
-        cache[key] = item
-        cache.close()
 
     @staticmethod
     def getKey(item):
         return repr(item.__class__) + ':' + repr(item)
+
+
+class NotInCacheError(Exception):
+    pass
+
+
+class CacheNotAvailableError(Exception):
+    pass
