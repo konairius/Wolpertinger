@@ -35,7 +35,7 @@ class Server(ServerInterface):
         self.address = config().publicAddress
         self.services = []
         self.enshureNameserver()
-        self.registerService(ManagementInterface(), 'manager')
+        self.registerService(ManagementInterface(), 'manager.' + config().servicename)
         logger.info('Pyro-Server ready!')
 
     def close(self):
