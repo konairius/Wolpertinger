@@ -17,6 +17,7 @@ from Filesystem.Filesystem import Export
 from Comunication.Client import ClientInterface
 from Comunication.Client import UriNotFoundError
 from Comunication.Server import ServerInterface
+from Comunication.Manager import Manager
 
 
 class Server(ServerInterface):
@@ -34,6 +35,7 @@ class Server(ServerInterface):
         self.address = config().publicAddress
         self.services = []
         self.enshureNameserver()
+        self.registerService(ManagementInterface(), 'manager')
         logger.info('Pyro-Server ready!')
 
     def close(self):
@@ -119,22 +121,17 @@ class ExportInterface(object):
         if None == uri:
             uri = self.export.getRootUri()
         return self.export.getItem(uri)
-"""
+
 
 class ManagementInterface(object):
     '''
     Interface controling the Server
     '''
     def __init__(self):
-        self.copyAgent = TransportAgent(config().transportDir)
+        pass
 
     def sync(self, source, target):
-        if not source.__class__ == Uri:
-            source = Uri(source)
-        if not target.__class__ == Uri:
-            target = Uri(target)
-        self.copyAgent.sync(source, target, True)
-"""
+        Manager.sync(source, target)
 
 
 class Client(ClientInterface):
@@ -155,9 +152,9 @@ class Client(ClientInterface):
         if not uri.__class__ == Uri:
             uri = Uri(uri)
         logger.info('Requesting Item from Remote:' + str(uri))
-        if uri.getExportIdentifier() not in self.knownExports.keys():
+        if uri.exportIdentifier not in self.knownExports.keys():
             self.findExports()
         try:
-            return self.knownExports[uri.getExportIdentifier()].getItem(uri)
+            return self.knownExports[uri.exportIdentifier].getItem(uri)
         except KeyError:
             raise UriNotFoundError(str(uri))

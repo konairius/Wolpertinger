@@ -19,6 +19,7 @@ from Filesystem.TransportAgent import MasterAgent
 from Comunication.Client import UriNotFoundError
 from Comunication.Client import client as masterClient
 from Comunication.Server import server as masterServer
+from Comunication.Manager import Manager
 from Comunication.Pyro import Client as PyroClient
 from Comunication.Pyro import Server as PyroServer
 
@@ -59,11 +60,11 @@ class TestUtilUri(unittest.TestCase):
         self.subUri = Uri('WT://Testexport1.Testservice/something')
 
     def testGetExportIdentifier(self):
-        self.assertEqual(self.rootUri.getExportIdentifier(), 'Testexport1.Testservice',
+        self.assertEqual(self.rootUri.exportIdentifier, 'Testexport1.Testservice',
                           'Exportidentifier was not found correctly')
 
     def testGetPath(self):
-        self.assertEqual(self.rootUri.getPath(), '/', 'Path was not found correctly')
+        self.assertEqual(self.rootUri.path, '/', 'Path was not found correctly')
 
     def testAppend(self):
         self.assertEqual(self.rootUri.append('something').string, self.subUri.string, 'Append did not work')
@@ -120,6 +121,20 @@ class TestFilesystemTransportAgent(unittest.TestCase):
 
         MasterAgent().add(folder1.sync(folder2))
         MasterAgent().add(folder2.sync(folder1))
+        MasterAgent().join()
+
+
+class TestCommManager(unittest.TestCase):
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        masterServer().register(PyroServer)
+        masterServer().add('/home/konsti/Videos', 'Videos')
+        masterServer().add('/home/konsti/tmp', 'tmp')
+        masterClient().register(PyroClient)
+
+    def testManagerSync(self):
+        Manager().sync('WT://export.tmp.Fluttershy/', 'WT://export.Videos.Fluttershy/')
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testWTFilesystem']

@@ -99,13 +99,6 @@ class File(Item):
         if not virtual:
             self._size = os.path.getsize(path)
             self._mtime = os.path.getmtime(path)
-            try:
-                self._hash = hasher().hashFile(self, sync).hash
-            except NotYetCreatedError as e:
-                if not sync:
-                    pass
-                else:
-                    raise AttributeError(e)
 
     def __repr__(self):
         return self.path
@@ -145,8 +138,9 @@ class File(Item):
         '''
         try:
             return self._hash
-        except AttributeError as e:
-            raise NotYetCreatedError(e)
+        except AttributeError:
+            self.hash = hasher().hashFile(self, True).hash
+            return self._hash
 
     @hash.setter
     def hash(self, value):
@@ -168,10 +162,10 @@ class File(Item):
         Returns a list of Files or Folders that need to be copied
         the sync the underlying structures.
         '''
+        syncList = []
         if not self.matches(other):
-            return ((self.uri, other.uri))
-        else:
-            return []
+            syncList.append(((self.uri, other.uri)))
+        return syncList
 
     def matches(self, other):
         '''
@@ -205,7 +199,7 @@ class Folder(Item):
                     logger.error(str(uri.append(item)) + ': ' + str(e))
 
     def __repr__(self):
-        return self.path()
+        return self.path
 
     @property
     def path(self):

@@ -11,6 +11,10 @@ from Filesystem.CopyTransport import copyAgent
 from Comunication.Client import client
 
 
+def agent():
+    return MasterAgent()
+
+
 class MasterAgent(object):
     '''
     Main Instance responsible for giving the individual files to the corresponding subAgent
@@ -25,7 +29,10 @@ class MasterAgent(object):
         for transfer in transferList:
             sourceItem = client().get(transfer[0])
             targetItem = client().get(transfer[1])
-            if sourceItem.uri.isLocal() and targetItem.uri.isLocal():
+            if sourceItem.uri.isLocal and targetItem.uri.isLocal:
                 copyAgent().add(sourceItem.path, targetItem.path)
             else:
                 raise NotImplementedError()
+
+    def join(self):
+        copyAgent().join()

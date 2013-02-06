@@ -50,6 +50,7 @@ class Server(object):
 class ServerInterface(metaclass=ABCMeta):
     '''
     The server part of a communication interface must implement this
+    This server can expose a magement Interface using the Manager Class
     '''
     @abstractmethod
     def add(self, path, name):

@@ -14,9 +14,6 @@ import shutil
 from threading import Thread
 
 
-from Util.Config import config
-
-
 def copyAgent():
     global _copyAgent
     try:
@@ -48,6 +45,9 @@ class CopyAgent(object):
         self.copyQueue.put((source, target))
         if block:
             self.copyQueue.join()
+
+    def join(self):
+        return self.copyQueue.join()
 
     def worker(self):
         while True:

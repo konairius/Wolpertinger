@@ -26,31 +26,32 @@ class Uri(object):
         if not string.startswith('WT://'):
             raise InvalidURIError(string)
         self.string = string
-        self.exportIdentifier = self.string.split('/')[2]
-        try:
-            self.path = self.string.split('/', 3)[3]
-        except IndexError:
-            self.path = ''
 
     def __repr__(self):
         return self.string
 
-    def getExportIdentifier(self):
-        return self.exportIdentifier
+    @property
+    def exportIdentifier(self):
+        return self.string.split('/')[2]
 
-    def getPath(self):
-        if self.path == '':
-            return'/'
-        return self.path
+    @property
+    def path(self):
+        try:
+            result = self.string.split('/', 3)[3]
+            if '' == result:
+                result = '/'
+            return result
+        except IndexError:
+            return '/'
 
     def append(self, newPart):
-        return Uri('WT://' + self.exportIdentifier + '/' + path.join(self.path, newPart))
+        return Uri('WT://' + self.exportIdentifier + path.join(self.path, newPart))
 
     def contains(self, subUri):
         return subUri.string.startswith(self.string)
 
     def getNextItem(self, uri):
-        result = self.getPath().lstrip(uri.getPath()).split('/')[0]
+        result = self.path.lstrip(uri.path).split('/')[0]
         return result
 
     def __eq__(self, *args, **kwargs):
@@ -59,8 +60,9 @@ class Uri(object):
         except AttributeError:
             return False
 
+    @property
     def isLocal(self):
-        return self.getExportIdentifier().split('.')[-1] == config().servicename
+        return self.exportIdentifier.split('.')[-1] == config().servicename
 
 
 class InvalidURIError(Exception):
