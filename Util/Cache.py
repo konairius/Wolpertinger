@@ -6,6 +6,7 @@ Created on Feb 3, 2013
 
 import shelve
 from threading import Semaphore
+from os.path import isfile
 
 
 from Util.Config import config
@@ -32,6 +33,8 @@ class Cache(object):
         self.cachePath = config().cachePath
         self.writeSemaphore = Semaphore()
 
+        self.verify()
+
     def add(self, item):
         try:
             self.writeSemaphore.acquire(blocking=True)
@@ -57,9 +60,36 @@ class Cache(object):
             cache.close()
         return item
 
+    def verify(self):
+        if not isfile(self.cachePath):
+            self.add(CacheVersion())
+
+        try:
+            cacheVersion = self.get(CacheVersion())
+        except NotInCacheError as e:
+            raise CacheVerificationError(e)
+
+        if not cacheVersion == CacheVersion():
+            raise CacheVersionMissmatch(cacheVersion.version)
+
     @staticmethod
     def getKey(item):
         return repr(item.__class__) + ':' + repr(item)
+
+
+class CacheVersion(object):
+    def __init__(self):
+        self._version = 1.0
+
+    @property
+    def version(self):
+        return self._version
+
+    def __eq__(self, other):
+        return self.version == other.version
+
+    def __repr__(self):
+        return self.__class__
 
 
 class NotInCacheError(Exception):
@@ -67,4 +97,12 @@ class NotInCacheError(Exception):
 
 
 class CacheNotAvailableError(Exception):
+    pass
+
+
+class CacheVerificationError(Exception):
+    pass
+
+
+class CacheVersionMissmatch(Exception):
     pass
