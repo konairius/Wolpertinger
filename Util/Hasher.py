@@ -45,7 +45,7 @@ class Hasher(object):
             self.hashWorker.name = 'Hash Worker #' + str(i)
             self.hashWorker.start()
 
-    def hashFile(self, file, sync=False):
+    def hashFile(self, file, sync=True):
         try:
             cachedFile = cache().get(file)
             if cachedFile.mtime == file.mtime and cachedFile.size == file.size:

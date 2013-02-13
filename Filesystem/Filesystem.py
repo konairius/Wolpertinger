@@ -99,6 +99,7 @@ class File(Item):
         if not virtual:
             self._size = os.path.getsize(path)
             self._mtime = os.path.getmtime(path)
+        hasher().hashFile(self, sync)
 
     def __repr__(self):
         return self.path
