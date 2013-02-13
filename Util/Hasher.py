@@ -17,6 +17,7 @@ import time
 from Util.Config import config
 from Util.Cache import cache
 from Util.Cache import NotInCacheError
+from Util.Cache import ItemVersionMissmatchError
 
 
 def hasher():
@@ -52,7 +53,7 @@ class Hasher(object):
                 return cachedFile
             else:
                 raise FileChangedError()
-        except (NotInCacheError, FileChangedError):
+        except (NotInCacheError, FileChangedError, ItemVersionMissmatchError):
             if False == sync:
                 self.toHash.put(file)
                 return file
@@ -66,7 +67,7 @@ class Hasher(object):
             file = self.toHash.get(block=True)
             try:
                 cache().get(file)
-            except NotInCacheError:
+            except (NotInCacheError, ItemVersionMissmatchError):
                 try:
                     file = self.createHash(file)
                     cache().add(file)

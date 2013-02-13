@@ -14,6 +14,7 @@ from Util.Config import config
 from Util.Uri import Uri
 from Util.Hasher import hasher
 from Util.Hasher import NotYetCreatedError
+from Util.Cache import Cacheable
 
 
 class Item(metaclass=ABCMeta):
@@ -86,7 +87,7 @@ class Item(metaclass=ABCMeta):
             return self.items[uri.getNextItem(self.uri)].getItem(uri)
 
 
-class File(Item):
+class File(Item, Cacheable):
     '''
     Represents a File in Wolpertinger,
     don't use the constructor, use the fromPath method
@@ -94,6 +95,7 @@ class File(Item):
     '''
 
     def __init__(self, path, uri, sync=True, virtual=False):
+        self._version = 0.1
         self._uri = uri
         self._path = path
         if not virtual:
@@ -102,7 +104,11 @@ class File(Item):
         hasher().hashFile(self, sync)
 
     def __repr__(self):
-        return self.path
+        return str(self.path)
+
+    @property
+    def version(self):
+        return self._version
 
     @property
     def path(self):

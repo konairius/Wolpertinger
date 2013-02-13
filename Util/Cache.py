@@ -12,6 +12,8 @@ import shelve
 from threading import Semaphore
 from os.path import isfile
 
+from abc import ABCMeta, abstractmethod
+
 
 from Util.Config import config
 
@@ -23,6 +25,16 @@ def cache():
     except NameError:
         _cache = Cache()
         return _cache
+
+
+class Cacheable(metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def version(self):
+        '''
+        Should retrun an version that changes, at least, every time the data fromat changes.
+        '''
+        pass
 
 
 class Cache(object):
@@ -40,6 +52,8 @@ class Cache(object):
         self.verify()
 
     def add(self, item):
+        if not isinstance(item, Cacheable):
+            raise NotCacheableError(item)
         try:
             self.writeSemaphore.acquire(blocking=True)
             cache = shelve.open(self.cachePath, writeback=False)
@@ -52,17 +66,23 @@ class Cache(object):
             self.writeSemaphore.release()
 
     def get(self, item):
+        if not isinstance(item, Cacheable):
+            logger.error('Item is not Cacheable: ' + str(item))
+            raise NotCacheableError(item)
         try:
             cache = shelve.open(self.cachePath, writeback=False)
             key = self.getKey(item)
-            item = cache[key]
+            cacheItem = cache[key]
+            if not cacheItem.version == item.version:
+                logger.warning('Cached version missmatch: was ' + str(cacheItem.version) + ' excpected ' + str(item.version))
+                raise ItemVersionMissmatchError(item)
         except KeyError as e:
             raise NotInCacheError(e)
         except IOError as e:
             raise CacheNotAvailableError(e)
         finally:
             cache.close()
-        return item
+        return cacheItem
 
     def verify(self):
         if not isfile(self.cachePath):
@@ -76,17 +96,17 @@ class Cache(object):
 
         if not cacheVersion == CacheVersion():
             logger.error('Cache has version ' + str(cacheVersion.version))
-            logger.error('Excpected version ' + str(CacheVersion.version))
+            logger.error('Expected version ' + str(CacheVersion.version))
             raise CacheVersionMissmatch(cacheVersion.version)
 
     @staticmethod
     def getKey(item):
-        return repr(item.__class__) + ':' + repr(item)
+        return repr(item)
 
 
-class CacheVersion(object):
+class CacheVersion(Cacheable):
     def __init__(self):
-        self._version = 1.0
+        self._version = 1.1
 
     @property
     def version(self):
@@ -96,10 +116,17 @@ class CacheVersion(object):
         return self.version == other.version
 
     def __repr__(self):
-        return self.__class__
+        return str(self.__class__)
+
+    def __str__(self):
+        return 'Version: ' + str(self.version)
 
 
 class NotInCacheError(Exception):
+    pass
+
+
+class NotCacheableError(Exception):
     pass
 
 
@@ -112,4 +139,8 @@ class CacheVerificationError(Exception):
 
 
 class CacheVersionMissmatch(Exception):
+    pass
+
+
+class ItemVersionMissmatchError(Exception):
     pass
