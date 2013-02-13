@@ -4,6 +4,10 @@ Created on Feb 3, 2013
 @author: konsti
 '''
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 import shelve
 from threading import Semaphore
 from os.path import isfile
@@ -44,8 +48,8 @@ class Cache(object):
         except IOError as e:
             raise CacheNotAvailableError(e)
         finally:
-            self.writeSemaphore.release()
             cache.close()
+            self.writeSemaphore.release()
 
     def get(self, item):
         try:
@@ -67,9 +71,12 @@ class Cache(object):
         try:
             cacheVersion = self.get(CacheVersion())
         except NotInCacheError as e:
+            logger.error('Cache dosn\'t contain Version')
             raise CacheVerificationError(e)
 
         if not cacheVersion == CacheVersion():
+            logger.error('Cache has version ' + str(cacheVersion.version))
+            logger.error('Excpected version ' + str(CacheVersion.version))
             raise CacheVersionMissmatch(cacheVersion.version)
 
     @staticmethod
