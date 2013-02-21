@@ -45,6 +45,12 @@ class Client(object):
                 pass
         raise UriNotFoundError(str(uri))
 
+    def listExports(self):
+        exports = []
+        for method in self.knownClients:
+            exports += method.listExports()
+        return exports
+
 
 class ClientInterface(metaclass=ABCMeta):
     '''
@@ -56,6 +62,11 @@ class ClientInterface(metaclass=ABCMeta):
         Returns the Item the Uri is pointing to or raises a UriNotFoundError
         '''
         pass
+
+    def listExports(self):
+        '''
+        Return all known (or found) exports
+        '''
 
 
 class UriNotFoundError(Exception):

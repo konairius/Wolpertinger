@@ -141,7 +141,7 @@ class Client(ClientInterface):
         self.nameserver = Pyro4.naming.locateNS()
         self.knownExports = dict()
 
-    def findExports(self):
+    def listExports(self):
         logger.debug('Updating known Exports')
         exports = self.nameserver.list(prefix='export')
         for key in exports.keys():
@@ -153,7 +153,7 @@ class Client(ClientInterface):
             uri = Uri(uri)
         logger.info('Requesting Item from Remote:' + str(uri))
         if uri.exportIdentifier not in self.knownExports.keys():
-            self.findExports()
+            self.listExports()
         try:
             return self.knownExports[uri.exportIdentifier].getItem(uri)
         except KeyError:
