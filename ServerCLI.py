@@ -55,6 +55,7 @@ def main():
     while False == shutdown:
         if 'quit' == input('#:'):
             shutdown = True
+            server().close()
         time.sleep(10)
 
 

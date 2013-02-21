@@ -38,9 +38,6 @@ class Server(ServerInterface):
         self.registerService(ManagementInterface(), 'manager.' + config().servicename)
         logger.info('Pyro-Server ready!')
 
-    def __exit__(self):
-        self.close()
-
     def close(self):
         logger.info('Closing server on ' + self.address)
         self.nameserver.remove(regex='.*\.' + config().servicename)

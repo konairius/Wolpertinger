@@ -46,6 +46,10 @@ class Server(object):
         for server in self.knownServers:
             server.add(path, name)
 
+    def close(self):
+        for server in self.knownServers:
+            server.close()
+
 
 class ServerInterface(metaclass=ABCMeta):
     '''
@@ -58,3 +62,13 @@ class ServerInterface(metaclass=ABCMeta):
         Adds the item to the exports and makes is accessable
         '''
         pass
+
+    @abstractmethod
+    def close(self):
+        '''
+        Gracefully closes all open connections and deregisters the exports
+        '''
+        pass
+
+    def __exit__(self):
+        self.close()
