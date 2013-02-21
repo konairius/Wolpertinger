@@ -90,21 +90,29 @@ USAGE
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         #parser.add_argument("-r", "--recursive", dest="recurse", action="store_true", help="recurse into subfolders [default: %(default)s]")
         #parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]")
-        #parser.add_argument("-i", "--include", dest="include", help="only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]", metavar="RE")
-        #parser.add_argument("-e", "--exclude", dest="exclude", help="exclude paths matching this regex pattern. [default: %(default)s]", metavar="RE")
+        parser.add_argument('--target', dest="target", help='the target for the sync command.')
+        parser.add_argument('--source', dest="source", help='the source for the sync command.\n\
+                                                        can also be used with the list command to search a directory')
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-        parser.add_argument(dest='command', help='list, sync', nargs='?')
+        parser.add_argument(dest='command', help='list, sync', choices=['list', 'sync'])
         # Process arguments
         args = parser.parse_args()
 
         command = args.command
+        source = args.source
+        target = args.target
 
         config().registerComMethodes()
 
-        if 'list' == command:
+        if 'list' == command and None == source:
             print('Exports found:')
             for export in client().listExports():
-                print('WT://' + export)
+                print('WT://' + export + '/')
+        elif 'list' == command:
+            for item in client().get(source).items:
+                print(item)
+        elif 'sync' == command:
+            print('Trying to sync:' + source + ' to ' + target)
 
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
