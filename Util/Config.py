@@ -24,6 +24,16 @@ class Config(object):
         self.config = configparser.ConfigParser()
         self.config.read(configPath)
 
+    def registerComMethodes(self):
+        from Comunication.Server import server as masterServer
+        from Comunication.Client import client as masterClient
+        from Comunication.Pyro import Server as PyroServer
+        from Comunication.Pyro import Client as PyroClient
+
+        if self.config['Global']['Communiation'] == 'Pyro':
+            masterServer().register(PyroServer)
+            masterClient().register(PyroClient)
+
     @property
     def cachePath(self):
         return self.config['Global']['Cachepath']

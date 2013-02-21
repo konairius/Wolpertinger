@@ -23,10 +23,8 @@ import os
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
-from Comunication.Server import server as masterServer
-from Comunication.Client import client as masterClient
-from Comunication.Pyro import Server as PyroServer
-from Comunication.Pyro import Client as PyroClient
+from Comunication.Client import client
+from Util.Config import config
 
 __all__ = []
 __version__ = 0.1
@@ -91,7 +89,7 @@ USAGE
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         #parser.add_argument("-r", "--recursive", dest="recurse", action="store_true", help="recurse into subfolders [default: %(default)s]")
-        parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]")
+        #parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]")
         #parser.add_argument("-i", "--include", dest="include", help="only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]", metavar="RE")
         #parser.add_argument("-e", "--exclude", dest="exclude", help="exclude paths matching this regex pattern. [default: %(default)s]", metavar="RE")
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
@@ -100,16 +98,12 @@ USAGE
         args = parser.parse_args()
 
         command = args.command
-        verbose = args.verbose
 
-        masterServer().register(PyroServer)
-        masterClient().register(PyroClient)
-
-        if verbose > 0:
-            print("Verbose mode on")
+        config().registerComMethodes()
 
         if 'list' == command:
-            for export in masterClient().listExports():
+            print('Exports found:')
+            for export in client().listExports():
                 print('WT://' + export)
 
     except KeyboardInterrupt:
@@ -126,8 +120,8 @@ USAGE
 
 if __name__ == "__main__":
     if DEBUG:
-#        sys.argv.append("-h")
-        sys.argv.append("-v")
+        pass
+
     if TESTRUN:
         import doctest
         doctest.testmod()

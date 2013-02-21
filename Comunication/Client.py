@@ -63,6 +63,7 @@ class ClientInterface(metaclass=ABCMeta):
         '''
         pass
 
+    @abstractmethod
     def listExports(self):
         '''
         Return all known (or found) exports

@@ -10,10 +10,7 @@ import logging
 import argparse
 import time
 
-from Comunication.Server import server as masterServer
-from Comunication.Client import client as masterClient
-from Comunication.Pyro import Server as PyroServer
-from Comunication.Pyro import Client as PyroClient
+from Comunication.Server import server
 from Util.Config import config
 
 
@@ -51,13 +48,13 @@ def main():
 
     #WTConfig.Config(args.configfile)
 
-    masterServer().register(PyroServer)
-    masterClient().register(PyroClient)
+    config().registerComMethodes()
+
     for key in config().exposedFolders.keys():
-        masterServer().add(config().exposedFolders[key], key)
+        server().add(config().exposedFolders[key], key)
     while False == shutdown:
         if 'quit' == input('#:'):
-            break
+            shutdown = True
         time.sleep(10)
 
 
