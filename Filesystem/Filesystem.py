@@ -15,6 +15,7 @@ from Util.Uri import Uri
 from Util.Hasher import hasher
 from Util.Hasher import NotYetCreatedError
 from Util.Cache import Cacheable
+from Util.Cache import NotUpgradableError
 
 
 class Item(metaclass=ABCMeta):
@@ -95,7 +96,7 @@ class File(Item, Cacheable):
     '''
 
     def __init__(self, path, uri, sync=True, virtual=False):
-        self._version = 0.1
+        self._version = 0.2
         self._uri = uri
         self._path = path
         if not virtual:
@@ -104,7 +105,7 @@ class File(Item, Cacheable):
         hasher().hashFile(self, sync)
 
     def __repr__(self):
-        return str(self.path)
+        return str(self.uri)
 
     @property
     def version(self):
@@ -181,6 +182,13 @@ class File(Item, Cacheable):
         if self.hash == other.hash:
             return True
         return False
+    
+    def upgrade(self, other):
+        if other.version == 0.1:
+            if other.size == self.size and other.mtime == self.mtime:
+                self.hash = other.hash
+                return self
+            raise NotUpgradableError
 
 
 class Folder(Item):
@@ -202,7 +210,7 @@ class Folder(Item):
                         self.items[item] = Folder(os.path.join(path, item), self.uri.append(item), sync)
                     elif os.path.isfile(os.path.join(path, item)):
                         self.items[item] = File(os.path.join(path, item), self.uri.append(item), sync)
-                except Exception as e:
+                except IOError as e:
                     logger.error(str(uri.append(item)) + ': ' + str(e))
 
     def __repr__(self):

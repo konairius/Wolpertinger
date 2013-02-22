@@ -109,8 +109,8 @@ USAGE
             for export in client().listExports():
                 print('WT://' + export + '/')
         elif 'list' == command:
-            for item in client().get(source).items:
-                print(item)
+            for item in client().get(source).items.items():
+                print(item[1].uri)
         elif 'sync' == command:
             print('Trying to sync:' + source + ' to ' + target)
 
