@@ -105,7 +105,7 @@ class File(Item, Cacheable):
         hasher().hashFile(self, sync)
 
     def __repr__(self):
-        return str(self.uri)
+        return str(self.path)
 
     @property
     def version(self):
