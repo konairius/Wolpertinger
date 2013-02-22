@@ -38,8 +38,8 @@ class Uri(object):
     def path(self):
         try:
             result = self.string.split('/', 3)[3]
-            if '' == result:
-                result = '/'
+            if not result.startswith('/'):
+                result = '/' + result
             return result
         except IndexError:
             return '/'

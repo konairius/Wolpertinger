@@ -36,6 +36,11 @@ class Cacheable(metaclass=ABCMeta):
         '''
         pass
 
+    @abstractmethod
+    def upgrade(self, item):
+        '''
+        gets the Cached version of the item, should return the upgraded version of the item
+        '''
 
 class Cache(object):
     '''
@@ -64,6 +69,20 @@ class Cache(object):
         finally:
             cache.close()
             self.writeSemaphore.release()
+            
+    def delete(self, item):
+        if not isinstance(item, Cacheable):
+            raise NotCacheableError(item)
+        try:
+            self.writeSemaphore.acquire(blocking=True)
+            cache = shelve.open(self.cachePath, writeback=False)
+            key = self.getKey(item)
+            del cache[key]
+        except IOError as e:
+            raise CacheNotAvailableError(e)
+        finally:
+            cache.close()
+            self.writeSemaphore.release()
 
     def get(self, item):
         if not isinstance(item, Cacheable):
@@ -74,8 +93,13 @@ class Cache(object):
             key = self.getKey(item)
             cacheItem = cache[key]
             if not cacheItem.version == item.version:
-                logger.warning('Cached version missmatch: was ' + str(cacheItem.version) + ' excpected ' + str(item.version))
-                raise ItemVersionMissmatchError(item)
+                try:
+                    self.add(item.upgrade(cacheItem))
+                    return self.get(item)
+                except NotUpgradableError:
+                    self.delete(item)
+                    logger.warning('Cached version missmatch: was ' + str(cacheItem.version) + ' excpected ' + str(item.version))
+                    raise ItemVersionMissmatchError(item)
         except KeyError as e:
             raise NotInCacheError(e)
         except IOError as e:
@@ -120,6 +144,9 @@ class CacheVersion(Cacheable):
 
     def __str__(self):
         return 'Version: ' + str(self.version)
+    
+    def upgrade(self):
+        raise NotUpgradableError
 
 
 class NotInCacheError(Exception):
@@ -143,4 +170,7 @@ class CacheVersionMissmatch(Exception):
 
 
 class ItemVersionMissmatchError(Exception):
+    pass
+
+class NotUpgradableError(Exception):
     pass

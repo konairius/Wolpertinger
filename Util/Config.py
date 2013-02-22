@@ -30,7 +30,7 @@ class Config(object):
         from Comunication.Pyro import Server as PyroServer
         from Comunication.Pyro import Client as PyroClient
 
-        if self.config['Global']['Communiation'] == 'Pyro':
+        if self.config['Global']['Comm'] == 'Pyro':
             masterServer().register(PyroServer)
             masterClient().register(PyroClient)
 
