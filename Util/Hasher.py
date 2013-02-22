@@ -55,6 +55,7 @@ class Hasher(object):
                 raise FileChangedError()
         except (NotInCacheError, FileChangedError, ItemVersionMissmatchError):
             if False == sync:
+                logger.debug('Adding file to Queue: ' + str(file))
                 self.toHash.put(file)
                 return file
             else:
