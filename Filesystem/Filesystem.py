@@ -188,7 +188,7 @@ class File(Item, Cacheable):
             if other.size == self.size and other.mtime == self.mtime:
                 self.hash = other.hash
                 return self
-            raise NotUpgradableError
+        raise NotUpgradableError
 
 
 class Folder(Item):
