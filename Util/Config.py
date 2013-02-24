@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import configparser
+from multiprocessing import Event
+
+
+stopEvent = Event()
 
 
 def config():

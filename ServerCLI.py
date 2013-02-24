@@ -6,21 +6,16 @@ Created on Jan 26, 2013
 @author: konsti
 '''
 
-import logging
 import argparse
 import time
 
 from Comunication.Server import server
 from Util.Config import config
+import Util.Config
+import Util.Logger
 
 
 def main():
-
-    global shutdown
-
-    shutdown = False
-
-    FORMAT = "%(asctime)s | %(levelname)s | %(name)s: %(message)s"
 
     parser = argparse.ArgumentParser(prog='Wolpertinger',
                                      description='Start a wolpertinger server.')
@@ -33,30 +28,31 @@ def main():
 
     args = parser.parse_args()
 
+    '''
     if args.loglevel.upper() == 'DEBUG':
-        logging.basicConfig(level=logging.DEBUG)
+        consolelogger['level'] = 'DEBUG'
     elif args.loglevel.upper() == 'INFO':
-        logging.basicConfig(level=logging.INFO)
+        consolelogger['level'] = 'INFO'
     elif args.loglevel.upper() == 'WARNING':
-        logging.basicConfig(level=logging.WARNING)
+        consolelogger['level'] = 'WARNING'
     elif args.loglevel.upper() == 'ERROR':
-        logging.basicConfig(level=logging.ERROR)
+        consolelogger['level'] = 'ERROR'
+    '''
 
-    if not args.logfile == 'stdout':
-        logging.basicConfig(filename=args.logfile)
-        logging.basicConfig(format=FORMAT)
-
+    #if not args.logfile == 'stdout':
+    #    logging.basicConfig(filename=args.logfile)
+    #logging.config.dictConfig(loggerconfig)
     #WTConfig.Config(args.configfile)
 
     config().registerComMethodes()
 
     for key in config().exposedFolders.keys():
         server().add(config().exposedFolders[key], key)
-    while False == shutdown:
+    while False == Util.Config.stopEvent.is_set():
         if 'quit' == input('#:'):
-            shutdown = True
+            Util.Config.stopEvent.set()
             server().close()
-        time.sleep(10)
+        #time.sleep(10)
 
 
 if __name__ == '__main__':
