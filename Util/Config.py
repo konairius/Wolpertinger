@@ -10,11 +10,6 @@ import configparser
 from multiprocessing import Event
 
 
-stopEvent = Event()
-loglevel = 'INFO'
-logfile = 'wolpertinger.log'
-
-
 def config():
     global _config
     try:
@@ -33,6 +28,9 @@ class Config(object):
     def __init__(self, configPath='wolpertinger.conf'):
         self.config = configparser.ConfigParser()
         self.config.read(configPath)
+        self._stopEvent = Event()
+        self._loglevel = 'INFO'
+        self._logfile = 'wolpertinger.log'
 
     def registerComMethodes(self):
         from Comunication.Server import server as masterServer
@@ -43,6 +41,26 @@ class Config(object):
         if self.config['Global']['Comm'] == 'Pyro':
             masterServer().register(PyroServer)
             masterClient().register(PyroClient)
+
+    @property
+    def stopEvent(self):
+        return self._stopEvent
+
+    @property
+    def loglevel(self):
+        return self._loglevel
+
+    @loglevel.setter
+    def loglevel(self, val):
+        _loglevel = val
+
+    @property
+    def logfile(self):
+        return self._logfile
+
+    @logfile.setter
+    def logfile(self, val):
+        _logfile = val
 
     @property
     def cachePath(self):

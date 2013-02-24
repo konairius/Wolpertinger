@@ -10,7 +10,7 @@ import logging.config
 from threading import Thread
 from queue import  Queue
 
-import Util.Config
+from Util.Config import config
 
 loggerQueue = Queue()
 
@@ -51,18 +51,18 @@ def listener():
                            'file': {
                                     'class': 'logging.FileHandler',
                                     'level': 'DEBUG',
-                                    'filename': Util.Config.logfile,
+                                    'filename': config().logfile,
                                     'mode': 'w',
                                     'formatter': 'detailed'}
                            },
               'root': {
-                       'level': Util.Config.loglevel,
+                       'level': config().loglevel,
                        'handlers': ['console', 'file']}
               }
     logging.config.dictConfig(config)
     listener = logging.handlers.QueueListener(loggerQueue, Handler())
     listener.start()
-    Util.Config.stopEvent.wait()
+    config().stopEvent.wait()
     logger.info('Closing Logger')
     listener.stop()
 

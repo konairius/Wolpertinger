@@ -7,12 +7,9 @@ Created on Jan 26, 2013
 '''
 
 import argparse
-import time
 
 from Comunication.Server import server
 from Util.Config import config
-import Util.Config
-import Util.Logger
 
 
 def main():
@@ -21,7 +18,7 @@ def main():
                                      description='Start a wolpertinger server.')
     parser.add_argument('--loglevel', dest='loglevel', default='INFO',
                         help='DEBUG, INFO, WARNING or ERROR')
-    parser.add_argument('--logfile', dest='logfile', default='stdout',
+    parser.add_argument('--logfile', dest='logfile', default='wolpertinger.log',
                         help='typically /var/log/wolpertinger.log')
     parser.add_argument('--configfile', dest='configfile', default='wolpertinger.conf',
                         help='check wolpertinger.conf.example for reference')
@@ -29,24 +26,23 @@ def main():
     args = parser.parse_args()
 
     if args.loglevel.upper() == 'DEBUG':
-        Util.Config.loglevel = 'DEBUG'
+        config().loglevel = 'DEBUG'
     elif args.loglevel.upper() == 'INFO':
-        Util.Config.loglevel = 'INFO'
+        config().loglevel = 'INFO'
     elif args.loglevel.upper() == 'WARNING':
-        Util.Config.loglevel = 'WARNING'
+        config().loglevel = 'WARNING'
     elif args.loglevel.upper() == 'ERROR':
-        Util.Config.loglevel = 'ERROR'
+        config().loglevel = 'ERROR'
 
-    if not args.logfile == 'stdout':
-        Util.Config.logfile = args.logfile
+    config().logfile = args.logfile
 
-    Util.Config.registerComMethodes()
+    config().registerComMethodes()
 
     for key in config().exposedFolders.keys():
         server().add(config().exposedFolders[key], key)
-    while False == Util.Config.stopEvent.is_set():
+    while False == config().stopEvent.is_set():
         if 'quit' == input('#:'):
-            Util.Config.stopEvent.set()
+            config().stopEvent.set()
             server().close()
         #time.sleep(10)
 
