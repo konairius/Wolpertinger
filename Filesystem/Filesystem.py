@@ -10,7 +10,6 @@ import os
 from os import listdir
 from abc import ABCMeta, abstractmethod
 
-from Util.Config import config
 from Util.Uri import Uri
 from Util.Hasher import hasher
 from Util.Hasher import NotYetCreatedError

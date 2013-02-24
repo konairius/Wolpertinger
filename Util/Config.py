@@ -11,6 +11,8 @@ from multiprocessing import Event
 
 
 stopEvent = Event()
+loglevel = 'INFO'
+logfile = 'wolpertinger.log'
 
 
 def config():
@@ -20,6 +22,10 @@ def config():
     except NameError:
         _config = Config()
         return _config
+
+
+def registerComMethodes():
+    config().registerComMethodes()
 
 
 class Config(object):

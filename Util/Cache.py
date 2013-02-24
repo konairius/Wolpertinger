@@ -42,6 +42,7 @@ class Cacheable(metaclass=ABCMeta):
         gets the Cached version of the item, should return the upgraded version of the item
         '''
 
+
 class Cache(object):
     '''
     Class used to persistently safe hashes and other elements (if needed)
@@ -69,7 +70,7 @@ class Cache(object):
         finally:
             cache.close()
             self.writeSemaphore.release()
-            
+
     def delete(self, item):
         if not isinstance(item, Cacheable):
             raise NotCacheableError(item)
@@ -144,7 +145,7 @@ class CacheVersion(Cacheable):
 
     def __str__(self):
         return 'Version: ' + str(self.version)
-    
+
     def upgrade(self):
         raise NotUpgradableError
 
@@ -171,6 +172,7 @@ class CacheVersionMissmatch(Exception):
 
 class ItemVersionMissmatchError(Exception):
     pass
+
 
 class NotUpgradableError(Exception):
     pass

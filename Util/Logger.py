@@ -51,12 +51,12 @@ def listener():
                            'file': {
                                     'class': 'logging.FileHandler',
                                     'level': 'DEBUG',
-                                    'filename': 'wolpertinger.log',
+                                    'filename': Util.Config.logfile,
                                     'mode': 'w',
                                     'formatter': 'detailed'}
                            },
               'root': {
-                       'level': 'DEBUG',
+                       'level': Util.Config.loglevel,
                        'handlers': ['console', 'file']}
               }
     logging.config.dictConfig(config)
@@ -67,7 +67,7 @@ def listener():
     listener.stop()
 
 
-def getLogger(name):
+def setupLogger():
     global loggerQueue
     config = {
               'version': 1,
@@ -83,12 +83,13 @@ def getLogger(name):
               }
 
     logging.config.dictConfig(config)
-    return logging.getLogger(name)
+    #return logging.getLogger(name)
 
 try:
     loggerThread.is_alive()
 except NameError:
-    logger = getLogger(__name__)
+    setupLogger()
+    logger = logging.getLogger(__name__)
     logger.info('Staring logger')
     loggerThread = Thread(target=listener, name='loggingListener')
     loggerThread.daemon = True

@@ -28,23 +28,19 @@ def main():
 
     args = parser.parse_args()
 
-    '''
     if args.loglevel.upper() == 'DEBUG':
-        consolelogger['level'] = 'DEBUG'
+        Util.Config.loglevel = 'DEBUG'
     elif args.loglevel.upper() == 'INFO':
-        consolelogger['level'] = 'INFO'
+        Util.Config.loglevel = 'INFO'
     elif args.loglevel.upper() == 'WARNING':
-        consolelogger['level'] = 'WARNING'
+        Util.Config.loglevel = 'WARNING'
     elif args.loglevel.upper() == 'ERROR':
-        consolelogger['level'] = 'ERROR'
-    '''
+        Util.Config.loglevel = 'ERROR'
 
-    #if not args.logfile == 'stdout':
-    #    logging.basicConfig(filename=args.logfile)
-    #logging.config.dictConfig(loggerconfig)
-    #WTConfig.Config(args.configfile)
+    if not args.logfile == 'stdout':
+        Util.Config.logfile = args.logfile
 
-    config().registerComMethodes()
+    Util.Config.registerComMethodes()
 
     for key in config().exposedFolders.keys():
         server().add(config().exposedFolders[key], key)
