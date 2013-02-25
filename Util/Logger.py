@@ -30,7 +30,7 @@ def listener():
     '''
     global loggerQueue
 
-    config = {
+    loggerConfig = {
               'version': 1,
               'disable_existing_loggers': True,
               'formatters': {
@@ -50,16 +50,16 @@ def listener():
                                        'formatter': 'simple'},
                            'file': {
                                     'class': 'logging.FileHandler',
-                                    'level': 'DEBUG',
+                                    'level': config().loglevel,
                                     'filename': config().logfile,
                                     'mode': 'w',
                                     'formatter': 'detailed'}
                            },
               'root': {
-                       'level': config().loglevel,
+                       'level': 'DEBUG',
                        'handlers': ['console', 'file']}
               }
-    logging.config.dictConfig(config)
+    logging.config.dictConfig(loggerConfig)
     listener = logging.handlers.QueueListener(loggerQueue, Handler())
     listener.start()
     config().stopEvent.wait()

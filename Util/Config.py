@@ -28,9 +28,8 @@ class Config(object):
     def __init__(self, configPath='wolpertinger.conf'):
         self.config = configparser.ConfigParser()
         self.config.read(configPath)
-        self._stopEvent = Event()
-        self._loglevel = 'INFO'
-        self._logfile = 'wolpertinger.log'
+        self.loglevel = 'INFO'
+        self.logfile = 'wolpertinger.log'
 
     def registerComMethodes(self):
         from Comunication.Server import server as masterServer
@@ -44,7 +43,11 @@ class Config(object):
 
     @property
     def stopEvent(self):
-        return self._stopEvent
+        try:
+            return self._stopEvent
+        except AttributeError:
+            self._stopEvent = Event()
+            return self._stopEvent
 
     @property
     def loglevel(self):
@@ -52,7 +55,7 @@ class Config(object):
 
     @loglevel.setter
     def loglevel(self, val):
-        _loglevel = val
+        self._loglevel = val
 
     @property
     def logfile(self):
@@ -60,7 +63,7 @@ class Config(object):
 
     @logfile.setter
     def logfile(self, val):
-        _logfile = val
+        self._logfile = val
 
     @property
     def cachePath(self):

@@ -36,6 +36,8 @@ def main():
 
     config().logfile = args.logfile
 
+    import Util.Logger
+
     config().registerComMethodes()
 
     for key in config().exposedFolders.keys():

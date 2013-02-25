@@ -181,7 +181,7 @@ class File(Item, Cacheable):
         if self.hash == other.hash:
             return True
         return False
-    
+
     def upgrade(self, other):
         if other.version == 0.1:
             if other.size == self.size and other.mtime == self.mtime:
