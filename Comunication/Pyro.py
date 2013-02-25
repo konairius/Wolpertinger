@@ -17,7 +17,7 @@ from Filesystem.Filesystem import Export
 from Comunication.Client import ClientInterface
 from Comunication.Client import UriNotFoundError
 from Comunication.Server import ServerInterface
-from Comunication.Manager import Manager
+from Comunication.Manager import ManagerInterface
 
 
 class Server(ServerInterface):
@@ -35,7 +35,7 @@ class Server(ServerInterface):
         self.address = config().publicAddress
         self.services = []
         self.enshureNameserver()
-        self.registerService(ManagementInterface(), 'manager.' + config().servicename)
+        self.registerService(Manager(), 'manager.' + config().servicename)
         logger.info('Pyro-Server ready!')
 
     def close(self):
@@ -68,7 +68,7 @@ class Server(ServerInterface):
         logger.info('Starting local Nameserver on ' + hostname)
         nameserverUri, nameserverDaemon, broadcastServer = Pyro4.naming.startNS(hostname)
         logger.debug('Nameserver running on ' + str(nameserverUri))
-        while True:
+        while not config().stopEvent.is_set():
             nameserverSockets = set(nameserverDaemon.sockets)
             rs = [broadcastServer]  # only the broadcast server is directly usable as a select() object
             rs.extend(nameserverSockets)
@@ -123,7 +123,7 @@ class ExportInterface(object):
         return self.export.getItem(uri)
 
 
-class ManagementInterface(object):
+class Manager(ManagerInterface):
     '''
     Interface controling the Server
     '''
@@ -131,7 +131,7 @@ class ManagementInterface(object):
         pass
 
     def sync(self, source, target):
-        Manager.sync(source, target)
+        ManagerInterface.sync(source, target)
 
 
 class Client(ClientInterface):
