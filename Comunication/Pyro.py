@@ -22,7 +22,7 @@ from Comunication.Manager import ManagerInterface
 
 class Server(ServerInterface):
     '''
-    Impelemnts the ServerInterface for Pyro Comm
+    Implements the ServerInterface for Pyro Comm
     '''
 
     def __init__(self):
@@ -130,8 +130,8 @@ class Manager(ManagerInterface):
     def __init__(self):
         pass
 
-    def sync(self, source, target):
-        ManagerInterface.sync(source, target)
+    #def sync(self, source, target):
+    #    ManagerInterface.sync(source, target)
 
 
 class Client(ClientInterface):
