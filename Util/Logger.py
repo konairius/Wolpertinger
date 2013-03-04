@@ -85,12 +85,16 @@ def setupLogger():
     logging.config.dictConfig(config)
     #return logging.getLogger(name)
 
-try:
-    loggerThread.is_alive()
-except NameError:
-    setupLogger()
-    logger = logging.getLogger(__name__)
-    logger.info('Staring logger')
-    loggerThread = Thread(target=listener, name='loggingListener')
-    loggerThread.daemon = True
-    loggerThread.start()
+
+def start():
+    global logger
+    global loggerThread
+    try:
+        loggerThread.is_alive()
+    except NameError:
+        setupLogger()
+        logger = logging.getLogger(__name__)
+        logger.info('Staring logger')
+        loggerThread = Thread(target=listener, name='loggingListener')
+        loggerThread.daemon = True
+        loggerThread.start()

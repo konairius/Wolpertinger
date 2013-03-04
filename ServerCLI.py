@@ -10,6 +10,7 @@ import argparse
 
 from Comunication.Server import server
 from Util.Config import config
+from Util.Logger import start as startLogger
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
 
     config().logfile = args.logfile
 
-    import Util.Logger
+    startLogger()
 
     config().registerComMethodes()
 
